@@ -10,7 +10,7 @@
 
   ;Name and file
   Name "ProjectName"
-  OutFile "..\ProjectName-Installer.exe"
+  OutFile "..\ExeFileName-Installer.exe"
 
   ;Default installation folder
   InstallDir "$PROGRAMFILES\OrgName\ProjectName"

@@ -38,7 +38,8 @@ public class StarSystemEntity extends ANamedEntity {
 		e.addAttribute("system", String.valueOf(system));
 		if(isAsteroid()) e.addAttribute("asteroid", "true");
 		if(isGasfield()) e.addAttribute("gasfield", "true");
-		location.toXML(e);
+		if(location != null)
+			location.toXML(e);
 		return e;
 	}
 

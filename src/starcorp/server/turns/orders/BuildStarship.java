@@ -64,6 +64,7 @@ public class BuildStarship extends AOrderProcessor {
 			ship.setPlanetLocation(colony.getLocation());
 			ship.setColony(colony.getID());
 			ship.setSystem(planet.getSystem());
+			ship.setLocation(planet.getLocation());
 			
 			boolean hasNeededHulls = true;
 			Iterator<Items> i = design.getHulls().iterator();

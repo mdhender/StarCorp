@@ -901,6 +901,14 @@ public class HibernateStore implements IEntityStore {
 		return copyLaws(listObject(createQuery(q)));
 	}
 
+	public List<AGovernmentLaw> listLawsByStarSystem(long systemId) {
+		String q = "select law from AGovernmentLaw as law where law.available = true and law.colony IN " +
+		"(select ID from Colony where planet IN " +
+		"(select ID from Planet where system = " + systemId + "))";
+		beginTransaction();
+		return copyLaws(listObject(createQuery(q)));
+	}
+
 	public List<FacilityLease> listLeases(long corp, boolean openOnly) {
 		String q = "from FacilityLease where licensee = :corp";
 		if (openOnly) {

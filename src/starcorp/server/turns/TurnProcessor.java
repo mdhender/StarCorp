@@ -238,7 +238,10 @@ public class TurnProcessor extends AServerTask {
 				}
 			}
 			report.addPlayerEntities(ships);
-			List<AGovernmentLaw> laws = entityStore.listLaws();
+			List<AGovernmentLaw> laws = new ArrayList<AGovernmentLaw>();
+			for(long systemId : corp.getKnownSystems()) {
+				laws.addAll(entityStore.listLawsByStarSystem(systemId));
+			}
 			if(log.isDebugEnabled()) {
 				log.debug("Laws: " + laws.size());
 			}

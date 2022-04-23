@@ -77,6 +77,7 @@ public interface IEntityStore {
 	
 	public abstract List<?> listEntities(Class<?> entityClass);
 	public abstract List<AGovernmentLaw> listLaws();
+	public abstract List<AGovernmentLaw> listLawsByStarSystem(long systemId);
 	
 	public abstract List<StarSystem> listSystems(Coordinates3D origin, int range);
 	
