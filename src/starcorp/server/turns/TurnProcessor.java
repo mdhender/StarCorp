@@ -92,21 +92,29 @@ public class TurnProcessor extends AServerTask {
 			}
 			else {
 				Turn turn = null;
+				boolean authorized = false;
 				try {
 					turn = new Turn(new FileInputStream(turns[i]));
-					boolean authorized = authorize(turn.getCorporation());
-					if(authorized) {
-						if(!register(turn.getCorporation())) {
-							turn.add(TurnError.ERROR_AUTHORIZATION_FAILED);
+					if(!Turn.VERSION.equals(turn.getVersion())) {
+						turn.add(TurnError.ERROR_VERSION_INVALID);
+					}
+					else {
+						authorized = authorize(turn.getCorporation());
+						if(!authorized) {
+							authorized = register(turn.getCorporation());
+							if(!authorized) {
+								turn.add(TurnError.ERROR_AUTHORIZATION_FAILED);
+							}
 						}
 					}
+					
 				}
 				catch(Exception e) {
-					log.warn(this + ": Error reading turn file " + turns[i].getName() + " because " + e.getMessage());
+					log.warn(this + ": Error reading turn file " + turns[i].getName() + " because " + e.getMessage(),e);
 				}
 				if(turn != null) {
 					try {
-						TurnReport report = process(turn);
+						TurnReport report = authorized ? process(turn) : new TurnReport(turn);
 						GalacticDate date = ServerConfiguration.getCurrentDate();
 						Corporation corp = report.getTurn().getCorporation();
 						String filename =  corp.getPlayerEmail() + "-turn-" + date.getMonth() + "-" +  date.getYear() + ".xml";
@@ -202,8 +210,17 @@ public class TurnProcessor extends AServerTask {
 					log.debug("Processed " + order + " : error = " + error);
 			}
 			turn.setProcessedDate(ServerConfiguration.getCurrentDate());
-			corp = (Corporation) entityStore.load(Corporation.class, corp.getID());
-			turn.setCorporation(corp);
+			if(corp.getID() < 1) {
+				String email = corp.getPlayerEmail();
+				corp = entityStore.getCorporation(email);
+				if(corp == null) {
+					log.error("No corporation found with email " + email);
+					return report;
+				}
+				else {
+					turn.setCorporation(corp);
+				}
+			}
 			report.addPlayerEntities(entityStore.listDesigns(corp.getID()));
 			List<Facility> facilities = entityStore.listFacilitiesByOwner(corp.getID());
 			for(Facility facility : facilities) {
@@ -226,6 +243,7 @@ public class TurnProcessor extends AServerTask {
 				log.debug("Laws: " + laws.size());
 			}
 			report.setLaws(laws);
+			report.setUnemployed(entityStore.listUnemployedByGovernment(turn.getCorporation().getID()));
 			report.setItems(entityStore.listItems(turn.getCorporation().getID()));
 			report.setEmployees(entityStore.listWorkersByEmployer(corp.getID()));
 			report.setFactoryQueue(entityStore.listQueueByCorporation(corp.getID()));

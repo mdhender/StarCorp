@@ -11,26 +11,13 @@
 package starcorp.client.gui.windows;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Text;
-
 import starcorp.client.gui.AWindow;
-import starcorp.client.gui.IComponent;
 import starcorp.client.gui.panes.DesignBuilder;
 import starcorp.client.gui.panes.StarshipDesignPane;
 import starcorp.common.entities.StarshipDesign;
-import starcorp.common.turns.Turn;
-import starcorp.common.turns.TurnOrder;
-import starcorp.common.types.Items;
-import starcorp.common.types.OrderType;
 
 /**
  * starcorp.client.gui.StarshipDesignWindow

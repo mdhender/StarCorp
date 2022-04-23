@@ -48,6 +48,7 @@ public class ScanGalaxy extends AOrderProcessor {
 		else {
 			ship.incrementTimeUnitsUsed(TIME_UNITS);
 			entityStore.update(ship);
+			corp = entityStore.getCorporation(corp.getPlayerEmail());
 			StarSystem system = (StarSystem) entityStore.load(StarSystem.class, ship.getSystem());
 			int range = ship.getDesign().getScanGalaxyRange();
 			List<StarSystem> systems = entityStore.listSystems(system.getLocation(), range);

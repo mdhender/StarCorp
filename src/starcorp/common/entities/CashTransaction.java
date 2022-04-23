@@ -32,6 +32,7 @@ import starcorp.common.types.GalacticDate;
  */
 public class CashTransaction implements IEntity {
 
+	public static final String LEASE_XFER = "lease.xfer";
 	public static final String GRANT_PAID = "grant.paid";
 	public static final String ITEM_BOUGHT = "item.bought";
 	public static final String ITEM_SOLD = "item.sold";

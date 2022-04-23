@@ -65,7 +65,7 @@ public class SendEmail {
 		props.put("mail.smtp.socketFactory.port", smtpPort);
 		props.put("mail.smtp.socketFactory.class", SSL_FACTORY);
 		props.put("mail.smtp.socketFactory.fallback", "false");
-		System.out.println(props);
+//		System.out.println(props);
 		Authenticator auth = new Authenticator() {
 
 			@Override

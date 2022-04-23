@@ -20,11 +20,8 @@ import starcorp.server.setup.AColonyTemplate;
  */
 public class Capitol extends AColonyTemplate {
 
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countFarms()
-	 */
 	@Override
-	protected int countFarms() {
+	protected int countGenerators() {
 		return (starcorp.server.Util.rnd.nextInt(5) + 1) * 20;
 	}
 
@@ -42,30 +39,6 @@ public class Capitol extends AColonyTemplate {
 	@Override
 	protected int countLightFactories() {
 		return (starcorp.server.Util.rnd.nextInt(3) + 1) * 10;
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countMines()
-	 */
-	@Override
-	protected int countMines() {
-		return (starcorp.server.Util.rnd.nextInt(10) + 1) * 10;
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countPlants()
-	 */
-	@Override
-	protected int countPlants() {
-		return 0;
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countRefineries()
-	 */
-	@Override
-	protected int countRefineries() {
-		return (starcorp.server.Util.rnd.nextInt(10) + 1) * 10;
 	}
 
 	/* (non-Javadoc)
@@ -93,7 +66,8 @@ public class Capitol extends AColonyTemplate {
 	}
 
 	@Override
-	protected int countPumps() {
-		return (starcorp.server.Util.rnd.nextInt(5) + 1) * 10;
+	protected int getMarketSize() {
+		return 1000000;
 	}
+
 }

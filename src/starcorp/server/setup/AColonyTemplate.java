@@ -12,8 +12,10 @@ package starcorp.server.setup;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,18 +25,25 @@ import starcorp.common.entities.Colony;
 import starcorp.common.entities.ColonyItem;
 import starcorp.common.entities.Corporation;
 import starcorp.common.entities.Facility;
+import starcorp.common.entities.FacilityLease;
 import starcorp.common.entities.MarketItem;
 import starcorp.common.entities.Planet;
+import starcorp.common.entities.ResourceDeposit;
 import starcorp.common.entities.Workers;
 import starcorp.common.types.AFacilityType;
 import starcorp.common.types.AItemType;
+import starcorp.common.types.BuildingModules;
 import starcorp.common.types.ConsumerGoods;
 import starcorp.common.types.Coordinates2D;
+import starcorp.common.types.Factory;
+import starcorp.common.types.IndustrialGoods;
 import starcorp.common.types.Items;
 import starcorp.common.types.PlanetMapSquare;
 import starcorp.common.types.Population;
 import starcorp.common.types.PopulationClass;
+import starcorp.common.types.Resources;
 import starcorp.common.types.ServiceFacility;
+import starcorp.common.types.StarshipHulls;
 import starcorp.common.util.PackageExplorer;
 import starcorp.server.ServerConfiguration;
 import starcorp.server.Util;
@@ -47,7 +56,6 @@ import starcorp.server.entitystore.IEntityStore;
  * @version 20 Sep 2007
  */
 public abstract class AColonyTemplate {
-
 	private static Map<String, AColonyTemplate> templates = new HashMap<String, AColonyTemplate>();
 	
 	static {
@@ -115,24 +123,89 @@ public abstract class AColonyTemplate {
 		List<AColonists> population = populate(colony, facilities);
 		createServiceFacilities(colony, corporations, facilities, population);
 		createConsumerGoods(colony, population, corporations);
+		createLeases(colony);
+		createIndustrialGoods(colony, corporations);
+		createBuildingModules(colony, corporations);
+		createStarshipHulls(colony, corporations);
 		return colony;
 	}
 	
+	protected FacilityLease createLease(Colony colony, AFacilityType type) {
+		FacilityLease lease = new FacilityLease();
+		lease.setAvailable(true);
+		lease.setColony(colony.getID());
+		lease.setIssuedDate(ServerConfiguration.getCurrentDate());
+		lease.setPrice(type.getTypicalPrice() / 10);
+		lease.setTypeClass(type);
+		lease = (FacilityLease) entityStore.create(lease);
+		if(log.isDebugEnabled())log.debug("Created " + lease);
+		return lease;
+	}
+	
+	protected void createLeases(Colony colony) {
+		Set<AFacilityType> generatorTypes = listSuitableGenerators(colony);
+		for(AFacilityType type : generatorTypes) {
+			for(int i = 0; i < 10; i++) {
+				createLease(colony, type);
+			}
+		}
+		List<AFacilityType> serviceTypes = AFacilityType.listTypes(ServiceFacility.class);
+		for(AFacilityType type : serviceTypes) {
+			int max = 10 / ((ServiceFacility)type).getQuality();
+			for(int i = 0; i < max; i++) {
+				createLease(colony, type);
+			}
+		}
+		if(!hasOrbitalDock()) {
+			AFacilityType type = AFacilityType.getType("dock");
+			createLease(colony, type);
+		}
+		List<AFacilityType> factoryTypes = AFacilityType.listTypes(Factory.class);
+		for(AFacilityType type : factoryTypes) {
+			for(int i = 0; i < 5; i++) {
+				createLease(colony, type);
+			}
+		}
+	}
+	
+	protected void createIndustrialGoods(Colony colony, List<Corporation> corporations) {
+		List<AItemType> types = AItemType.listTypes(IndustrialGoods.class);
+		
+		for(AItemType type : types) {
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())), type, getMarketSize(), type.getNPCPrice());
+		}
+	}
+	
+	protected void createBuildingModules(Colony colony, List<Corporation> corporations) {
+		List<AItemType> types = AItemType.listTypes(BuildingModules.class);
+		
+		for(AItemType type : types) {
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())), type, getMarketSize() / 1000, type.getNPCPrice());
+		}
+	}
+	
+	protected void createStarshipHulls(Colony colony, List<Corporation> corporations) {
+		List<AItemType> types = AItemType.listTypes(StarshipHulls.class);
+		
+		for(AItemType type : types) {
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())), type, getMarketSize() / 10000, type.getNPCPrice());
+		}
+	}
+
 	protected void createConsumerGoods(Colony colony, List<AColonists> population, List<Corporation> corporations) {
 		Map<PopulationClass,Integer> count = count(population);
 		for(PopulationClass popClass : count.keySet()) {
 			int n = count.get(popClass) * 100;
 			int quality = popClass.getConsumerQualityRequired();
-			int charge = popClass.getNPCSalary() / 8;
 			AItemType food = ConsumerGoods.listFood(quality).get(0);
 			AItemType drink = ConsumerGoods.listDrink(quality).get(0);
 			AItemType intoxicant = ConsumerGoods.listIntoxicant(quality).get(0);
 			AItemType clothes = ConsumerGoods.listClothes(quality).get(0);
 			
-			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())), food, n, charge);
-			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),drink, n, charge);
-			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),intoxicant, n, charge);
-			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),clothes, n, charge);
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())), food, n, food.getNPCPrice());
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),drink, n, drink.getNPCPrice());
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),intoxicant, n, intoxicant.getNPCPrice());
+			createItem(colony, corporations.get(Util.rnd.nextInt(corporations.size())),clothes, n, clothes.getNPCPrice());
 		}
 	}
 	
@@ -259,27 +332,28 @@ public abstract class AColonyTemplate {
 		return colonists;
 	}
 	
+	protected Set<AFacilityType> listSuitableGenerators(Colony colony) {
+		List<ResourceDeposit> deposits = entityStore.listDepositsByColony(colony.getID());
+		Set<AFacilityType> set = new HashSet<AFacilityType>();
+		for(ResourceDeposit rd : deposits) {
+			Resources res = (Resources) rd.getTypeClass();
+			set.addAll(res.listGenerators());
+		}
+		return set;
+	}
+	
 	protected List<Facility> createFacilities(Colony colony, List<Corporation> corporations) {
 		List<Facility> facilities = new ArrayList<Facility>();
-		int farms = countFarms();
-		int pumps = countPumps();
-		int mines = countMines();
-		int refineries = countRefineries();
+		int generators = countGenerators();
 		int lfact = countLightFactories();
 		int hfact = countHeavyFactories();
 		int shfact = countSuperHeavyFactories();
 		int shipyards = countShipyards();
-		for(int i = 0; i < farms; i++) {
-			facilities.add(createFacility(colony,corporations.get(Util.rnd.nextInt(corporations.size())),  "farm"));
-		}
-		for(int i = 0; i < mines; i++) {
-			facilities.add(createFacility(colony, corporations.get(Util.rnd.nextInt(corporations.size())), "mine"));
-		}
-		for(int i = 0; i < pumps; i++) {
-			facilities.add(createFacility(colony, corporations.get(Util.rnd.nextInt(corporations.size())), "pump"));
-		}
-		for(int i = 0; i < refineries; i++) {
-			facilities.add(createFacility(colony,corporations.get(Util.rnd.nextInt(corporations.size())),  "refinery"));
+		Set<AFacilityType> generatorTypes = listSuitableGenerators(colony);
+		for(int i = 0; i < generators; i++) {
+			for(AFacilityType type : generatorTypes) {
+				facilities.add(createFacility(colony,corporations.get(Util.rnd.nextInt(corporations.size())),  type.getKey()));
+			}
 		}
 		for(int i = 0; i < lfact; i++) {
 			facilities.add(createFacility(colony, corporations.get(Util.rnd.nextInt(corporations.size())), "light-factory"));
@@ -313,14 +387,12 @@ public abstract class AColonyTemplate {
 		return facility;
 	}
 	
-	protected abstract int countFarms();
-	protected abstract int countMines();
-	protected abstract int countPumps();
-	protected abstract int countRefineries();
-	protected abstract int countPlants();
+	protected abstract int countGenerators();
 	protected abstract int countLightFactories();
 	protected abstract int countHeavyFactories();
 	protected abstract int countSuperHeavyFactories();
 	protected abstract int countShipyards();
 	protected abstract boolean hasOrbitalDock();
+	
+	protected abstract int getMarketSize();
 }

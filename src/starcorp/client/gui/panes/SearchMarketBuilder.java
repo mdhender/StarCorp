@@ -14,21 +14,15 @@ import java.util.List;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 import starcorp.client.gui.ABuilderPane;
 import starcorp.client.gui.ADataEntryWindow;
-import starcorp.client.gui.widgets.Hyperlink;
 import starcorp.client.gui.windows.SearchMarketWindow;
 import starcorp.common.entities.Colony;
 import starcorp.common.types.AItemType;
@@ -42,6 +36,12 @@ import starcorp.common.types.AItemType;
 public class SearchMarketBuilder extends ABuilderPane {
 	private final SearchMarketWindow searchWindow;
 	
+	private Text txtName;
+	private Combo typesCombo;
+	private Combo coloniesCombo;
+	private Text txtQty;
+	private Text txtPrice;
+	
 	public SearchMarketBuilder(ADataEntryWindow mainWindow) {
 		super(mainWindow);
 		this.searchWindow = (SearchMarketWindow) mainWindow;
@@ -54,47 +54,45 @@ public class SearchMarketBuilder extends ABuilderPane {
 		String show = "Showing " + searchWindow.countFilteredItems() + " of " + searchWindow.countAllItems();
 		getParent().setText(show);
 		
-		final Text txtName = createTextInput(getParent(), widgets, "Name:");
+		txtName = createTextInput(getParent(), widgets, "Name:");
 		if(searchWindow.getFilterName() != null) {
 			txtName.setText(searchWindow.getFilterName());
 		}
 		txtName.setSize(100, 20);
 		List<AItemType> types = AItemType.listTypes();
-		final Combo typesCombo = createTypeSelection(getParent(), widgets, types, searchWindow.getFilterType(), "Type:");
+		typesCombo = createTypeSelection(getParent(), widgets, types, searchWindow.getFilterType(), "Type:");
 		Set<Colony> colonies = searchWindow.getReport().getColonies();
-		final Combo coloniesCombo = createEntitySelection(getParent(), widgets, colonies, searchWindow.getFilterColony(), "Colony:"); 
-		final Text txtQty = createIntegerInput(getParent(), widgets, "Min. Quantity:");
+		coloniesCombo = createEntitySelection(getParent(), widgets, colonies, searchWindow.getFilterColony(), "Colony:"); 
+		txtQty = createIntegerInput(getParent(), widgets, "Min. Quantity:");
 		if(searchWindow.getFilterQuantity() > 0) {
 			txtQty.setText(String.valueOf(searchWindow.getFilterQuantity()));
 		}
 		txtQty.setSize(100, 20);
-		final Text txtPrice = createIntegerInput(getParent(), widgets, "Max. Price:");
+		txtPrice = createIntegerInput(getParent(), widgets, "Max. Price:");
 		if(searchWindow.getFilterPrice() > 0) {
 			txtPrice.setText(String.valueOf(searchWindow.getFilterPrice()));
 		}
-		
-		final Button btnClear = createButton(getParent(), widgets, "Clear");
-		btnClear.addListener(SWT.Selection, new Listener() {
-			public void handleEvent (Event event) {
-				searchWindow.set(0, -1, "", null, null);
-			}
-		});
-
-		final Button btnFilter = createButton(getParent(), widgets, "Filter");
-		btnFilter.addListener(SWT.Selection, new Listener() {
-			public void handleEvent (Event event) {
-				String filterName = txtName.getText();
-				if(filterName != null && filterName.length() < 1) filterName = null;
-				int filterQuantity = getIntegerTextValue(txtQty);
-				int filterPrice = getIntegerTextValue(txtPrice);
-				AItemType filterType = (AItemType) getComboValue(typesCombo);
-				Colony filterColony = (Colony) getComboValue(coloniesCombo);
-				System.out.println("Filter: name=" + filterName + " : qty=" + filterQuantity + " : type=" + filterType + " : colony=" + filterColony );
-				searchWindow.set(filterQuantity, filterPrice, filterName, filterType, filterColony);
-			}
-		});
-		
-		
 	}
+
+	public String getFilterName() {
+		return txtName.getText();
+	}
+
+	public AItemType getFilterType() {
+		return (AItemType) getComboValue(typesCombo);
+	}
+
+	public Colony getFilterColony() {
+		return (Colony) getComboValue(coloniesCombo);
+	}
+
+	public int getFilterQuantity() {
+		return getIntegerTextValue(txtQty);
+	}
+
+	public int getFilterPrice() {
+		return getIntegerTextValue(txtPrice);
+	}
+
 	
 }

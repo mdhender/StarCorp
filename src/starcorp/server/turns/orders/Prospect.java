@@ -10,14 +10,15 @@
  */
 package starcorp.server.turns.orders;
 
-import java.util.List;
-
 import starcorp.common.entities.Corporation;
 import starcorp.common.entities.Planet;
+import starcorp.common.entities.ResourceDeposit;
 import starcorp.common.entities.Starship;
+import starcorp.common.entities.StarshipDesign;
 import starcorp.common.turns.OrderReport;
 import starcorp.common.turns.TurnError;
 import starcorp.common.turns.TurnOrder;
+import starcorp.common.types.AItemType;
 import starcorp.common.types.OrderType;
 import starcorp.server.turns.AOrderProcessor;
 
@@ -52,12 +53,20 @@ public class Prospect extends AOrderProcessor {
 			ship.incrementTimeUnitsUsed(TIME_UNITS);
 			entityStore.update(ship);
 			OrderReport report = new OrderReport(order,null,ship);
-			// TODO filter deposits by ship's available labs
 			Planet planet = (Planet) entityStore.load(Planet.class, ship.getPlanet());
-			List<?> deposits = entityStore.listDeposits(ship.getPlanet(), ship.getPlanetLocation());
+			int count = 0;
+			StarshipDesign design = ship.getDesign();
+			for(ResourceDeposit rd : entityStore.listDeposits(ship.getPlanet(), ship.getPlanetLocation())) {
+				AItemType type = rd.getTypeClass();
+				if(type == null)
+					continue;
+				if(design.canProspect(type)) {
+					report.addScannedEntity(rd);
+					count++;
+				}
+			}
 			report.setScannedLocation(planet.get(ship.getPlanetLocation()));
-			report.addScannedEntities(deposits);
-			report.add(deposits.size());
+			report.add(count);
 			report.add(ship.getTimeUnitsRemaining());
 			order.setReport(report);
 		}

@@ -10,14 +10,12 @@
  */
 package starcorp.client.gui.panes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Event;
@@ -27,9 +25,12 @@ import org.eclipse.swt.widgets.Widget;
 
 import starcorp.client.gui.ABuilderPane;
 import starcorp.client.gui.ADataEntryWindow;
-import starcorp.client.gui.widgets.Hyperlink;
 import starcorp.client.gui.windows.SearchLawsWindow;
+import starcorp.common.entities.ColonistGrant;
 import starcorp.common.entities.Colony;
+import starcorp.common.entities.Corporation;
+import starcorp.common.entities.DevelopmentGrant;
+import starcorp.common.entities.FacilityLease;
 
 /**
  * starcorp.client.gui.SearchLawBuilder
@@ -39,6 +40,12 @@ import starcorp.common.entities.Colony;
  */
 public class SearchLawBuilder extends ABuilderPane {
 	private final SearchLawsWindow searchWindow;
+	
+	private Combo typesCombo;
+	private Combo coloniesCombo;
+	private Button checkMyCorp;
+	private Button checkUnsold;
+	private Button checkAny;
 	
 	public SearchLawBuilder(ADataEntryWindow mainWindow) {
 		super(mainWindow);
@@ -51,26 +58,64 @@ public class SearchLawBuilder extends ABuilderPane {
 		super.createWidgets(widgets);
 		String show = "Showing " + searchWindow.countFilteredItems() + " of " + searchWindow.countAllItems();
 		getParent().setText(show);
+
+		int selected = -1;
+		String[] items = {"Facility Lease", "Development Grant", "Colonist Grant"};
+		List<Class<?>> values = new ArrayList<Class<?>>();
+		values.add(FacilityLease.class);
+		if(FacilityLease.class.equals(searchWindow.getFilterType())) {
+			selected = 0;
+		}
+		values.add(DevelopmentGrant.class);
+		if(DevelopmentGrant.class.equals(searchWindow.getFilterType())) {
+			selected = 1;
+		}
+		values.add(ColonistGrant.class);
+		if(ColonistGrant.class.equals(searchWindow.getFilterType())) {
+			selected = 2;
+		}
+		typesCombo = createCombo(getParent(), widgets, items, values, selected, "Types:");
 		
 		Set<Colony> colonies = searchWindow.getReport().getColonies();
-		final Combo coloniesCombo = createEntitySelection(getParent(), widgets, colonies, searchWindow.getFilterColony(), "Colony:"); 
+		coloniesCombo = createEntitySelection(getParent(), widgets, colonies, searchWindow.getFilterColony(), "Colony:"); 
 
-		final Button btnClear = createButton(getParent(), widgets, "Clear");
-		btnClear.addListener(SWT.Selection, new Listener() {
-			public void handleEvent (Event event) {
-				searchWindow.set(null);
-			}
-		});
-
-		final Button btnFilter = createButton(getParent(), widgets, "Filter");
-		btnFilter.addListener(SWT.Selection, new Listener() {
-			public void handleEvent (Event event) {
-				Colony filterColony = (Colony) getComboValue(coloniesCombo);
-				searchWindow.set(filterColony);
-			}
-		});
+		Group grp = createGroup(getParent(), widgets, "Licensee");
+		grp.setLayout(new GridLayout(2,false));
+		final Corporation corp = getTurnReport().getTurn().getCorporation();
+		checkMyCorp = createRadio(grp, widgets, corp.getDisplayName());
+		if(searchWindow.getFilterLicensee() == corp.getID()) {
+			checkMyCorp.setSelection(true);
+		}
+		checkUnsold = createRadio(grp, widgets, "Unsold");
+		if(searchWindow.getFilterLicensee() == 0) {
+			checkUnsold.setSelection(true);
+		}
+		checkAny = createRadio(grp, widgets, "Any");
+		if(searchWindow.getFilterLicensee() == -1) {
+			checkAny.setSelection(true);
+		}
 		
-		
+	}
+	
+	public long getFilterLicensee() {
+		long filterLicensee = -1;
+		final Corporation corp = getTurnReport().getTurn().getCorporation();
+		if(checkMyCorp.getSelection()) {
+			filterLicensee = corp.getID();
+		}
+		if(checkUnsold.getSelection()) {
+			filterLicensee = 0;
+		}
+		return filterLicensee;
+	}
+	
+	
+	public Colony getFilterColony() {
+		return (Colony) getComboValue(coloniesCombo);
+	}
+	
+	public Class<?> getFilterType() {
+		return (Class<?>) getComboValue(typesCombo);
 	}
 	
 }

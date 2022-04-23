@@ -11,7 +11,7 @@ import org.dom4j.io.XMLWriter;
 
 import starcorp.common.types.GalacticDate;
 
-public abstract class AGovernmentLaw implements IEntity {
+public abstract class AGovernmentLaw implements IEntity, Comparable<AGovernmentLaw> {
 
 	private long ID;
 	private int version;
@@ -134,6 +134,10 @@ public abstract class AGovernmentLaw implements IEntity {
 
 	public String getDisplayName() {
 		return getClass().getSimpleName() +" [" + getID() +"]";
+	}
+
+	public int compareTo(AGovernmentLaw o) {
+		return (int) ((o == null ? 0 :o.ID) - this.ID);
 	}
 
 }

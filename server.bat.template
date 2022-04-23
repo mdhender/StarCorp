@@ -1,2 +1,2 @@
 echo off
-java -jar JarFile
+java -cp ./ -jar JarFile

@@ -12,8 +12,6 @@ package starcorp.client.gui.panes;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -59,12 +57,15 @@ public class CorporationPane extends AEntityPane {
 		Group grp = createGroup(getParent(), widgets, "");
 //		grp.setLayoutData(new GridData(SWT.LEFT,SWT.TOP,true,true,2,1));
 		grp.setLayout(new GridLayout(2,false));
-		createLabel(grp, widgets, "Player:");
-		createLabel(grp, widgets, corp.getPlayerName() == null ? "NPC" : corp.getPlayerName());
-		
-		// TODO make email a link to send a message to the player (use a custom dialog)
-		createLabel(grp, widgets, "Email:");
-		createLabel(grp,widgets,corp.getPlayerEmail() == null ? "NPC" : corp.getPlayerEmail());
+		boolean npc = corp.getPlayerName() == null;
+		if(npc) {
+			createLabel(grp,widgets,"NPC")
+			.setLayoutData(new GridData(SWT.LEFT,SWT.TOP,true,true,2,1));
+		}
+		else if(getTurnReport().getTurn().getCorporation().getID() != corp.getID()){
+			createLabel(grp, widgets, "Player:");
+			createSendEmailLink(grp, widgets, corp, null);
+		}
 		
 		if(getTurnReport() != null && corp.equals(getTurnReport().getTurn().getCorporation())) {
 			createLabel(grp, widgets, "Credits:");
@@ -89,7 +90,7 @@ public class CorporationPane extends AEntityPane {
 	}
 
 	protected Group createMarket(Composite parent, List<Widget> widgets) {
-		Set<MarketItem> set = getTurnReport().getMarketBySeller().get(corp.getID());
+		List<MarketItem> set = getTurnReport().getMarketBySeller().get(corp.getID());
 		if(set == null || set.size() < 1) {
 			return null;
 		}

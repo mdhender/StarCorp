@@ -35,18 +35,21 @@ import starcorp.common.types.GalacticDate;
  * @version 16 Sep 2007
  */
 public class Turn {
-
+	public static final String VERSION = "0.9.1.0";
+	
+	private String version;
 	private GalacticDate processedDate;
 	private Corporation corporation;
 	private List<TurnOrder> orders = new ArrayList<TurnOrder>();
 	private List<TurnError> errors = new ArrayList<TurnError>();
 	
 	public Turn() {
-		
+		this.version = VERSION;
 	}
 	
 	public Turn(Corporation corp) {
 		corporation = corp;
+		this.version = VERSION;
 	}
 	
 	public List<OrderReport> getOrderReports() {
@@ -103,6 +106,7 @@ public class Turn {
 	public void readXML(Element root) {
 		if(root == null)
 			return;
+		this.version = root.attributeValue("version");
 		this.corporation = new Corporation();
 		Element eCorp = root.element("corporation");
 		if(eCorp != null) this.corporation.readXML(eCorp.element("entity"));
@@ -127,6 +131,7 @@ public class Turn {
 	
 	public Element toXML(Element parent) {
 		Element root = parent.addElement("turn");
+		root.addAttribute("version", VERSION);
 		if(corporation != null)
 			corporation.toFullXML(root.addElement("corporation"));
 		if(processedDate != null)
@@ -150,6 +155,10 @@ public class Turn {
 	
 	public void add(TurnOrder order) {
 		orders.add(order);
+	}
+	
+	public void remove(int orderIndex) {
+		orders.remove(orderIndex);
 	}
 	
 	public Iterator<TurnOrder> orders() {
@@ -204,5 +213,9 @@ public class Turn {
 	        + " )";
 	
 	    return retValue;
+	}
+
+	public String getVersion() {
+		return version;
 	}
 }

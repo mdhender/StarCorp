@@ -10,8 +10,10 @@
  */
 package starcorp.server.turns.orders;
 
-import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import starcorp.common.entities.AColonists;
 import starcorp.common.entities.CashTransaction;
@@ -38,7 +40,8 @@ import starcorp.server.turns.AOrderProcessor;
  * @version 16 Sep 2007
  */
 public class CorporationBuyItem extends AOrderProcessor {
-
+	private static final Log log = LogFactory.getLog(CorporationBuyItem.class);
+	
 	/* (non-Javadoc)
 	 * @see starcorp.server.turns.AOrderProcessor#process(starcorp.client.turns.TurnOrder)
 	 */
@@ -71,10 +74,7 @@ public class CorporationBuyItem extends AOrderProcessor {
 			error = new TurnError(TurnError.MARKET_OUT_OF_TRANSACTIONS,order);
 		}
 		else {	
-			List<MarketItem> marketItems = new ArrayList<MarketItem>();
-			for(Object o : entityStore.listMarket(colony.getID(), 1)) {
-				marketItems.add((MarketItem)o);
-			}
+			List<MarketItem> marketItems = entityStore.listMarket(colony.getID(), type, 1);
 			ColonyItem colonyItem = entityStore.getItem(colony.getID(), corp.getID(), type);
 			if(colonyItem == null) {
 				colonyItem = new ColonyItem();
@@ -85,7 +85,13 @@ public class CorporationBuyItem extends AOrderProcessor {
 				colonyItem.setOwner(corp.getID());
 				entityStore.create(colonyItem);
 			}
-			Util.BuyResult result = Util.buy(ServerConfiguration.getCurrentDate(), marketItems, quantity, entityStore.getCredits(corp.getID()),entityStore);
+			if(corp.getID() < 1) {
+				corp = entityStore.getCorporation(corp.getPlayerEmail());
+			}
+			long credits = entityStore.getCredits(corp.getID());
+			if(log.isDebugEnabled())
+				log.debug("Credits available for " + corp + " is " + credits);
+			Util.BuyResult result = Util.buy(ServerConfiguration.getCurrentDate(), marketItems, quantity, credits,entityStore);
 			Object[] args = {String.valueOf(result.quantityBought), type.getName(),colony.getName(),String.valueOf(colony.getID())};
 			String desc = CashTransaction.getDescription(CashTransaction.ITEM_BOUGHT, args);
 			colonyItem.getItem().add(result.quantityBought);

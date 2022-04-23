@@ -29,6 +29,7 @@ import java.util.TreeSet;
  */
 public class OrderType extends ABaseType {
 
+	public static final String BUY_LEASE = "buy-lease";
 	public static final String BUILD_FACILITY = "build-facility";
 	public static final String BUILD_STARSHIP = "build-starship";
 	public static final String ISSUE_COLONIST_GRANT = "grant-colonist";

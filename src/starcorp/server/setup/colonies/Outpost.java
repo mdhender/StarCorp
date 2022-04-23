@@ -21,14 +21,6 @@ import starcorp.server.setup.AColonyTemplate;
 public class Outpost extends AColonyTemplate {
 
 	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countFarms()
-	 */
-	@Override
-	protected int countFarms() {
-		return (starcorp.server.Util.rnd.nextInt(5) + 1);
-	}
-
-	/* (non-Javadoc)
 	 * @see starcorp.server.setup.AColonyTemplate#countHeavyFactories()
 	 */
 	@Override
@@ -42,30 +34,6 @@ public class Outpost extends AColonyTemplate {
 	@Override
 	protected int countLightFactories() {
 		return 0;
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countMines()
-	 */
-	@Override
-	protected int countMines() {
-		return (starcorp.server.Util.rnd.nextInt(5) + 1);
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countPlants()
-	 */
-	@Override
-	protected int countPlants() {
-		return 0;
-	}
-
-	/* (non-Javadoc)
-	 * @see starcorp.server.setup.AColonyTemplate#countRefineries()
-	 */
-	@Override
-	protected int countRefineries() {
-		return (starcorp.server.Util.rnd.nextInt(2) + 1);
 	}
 
 	/* (non-Javadoc)
@@ -93,7 +61,12 @@ public class Outpost extends AColonyTemplate {
 	}
 
 	@Override
-	protected int countPumps() {
-		return (starcorp.server.Util.rnd.nextInt(2) + 1);
+	protected int countGenerators() {
+		return (starcorp.server.Util.rnd.nextInt(3) + 1);
+	}
+
+	@Override
+	protected int getMarketSize() {
+		return 100;
 	}
 }

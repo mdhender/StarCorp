@@ -10,8 +10,6 @@
  */
 package starcorp.client.gui.widgets;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -129,12 +127,7 @@ public class PlanetMap implements IComponent {
 		List<TerrainType> types = TerrainType.listTypes();
 		for(TerrainType type : types) {
 			String imageFile = type.getImageFilename();
-			InputStream is = null;
-			try {
-				is = new FileInputStream(imageFile);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-			}
+			InputStream is = getClass().getResourceAsStream(imageFile);
 			if(is != null) {
 				Image img = new Image(parent.getDisplay(),is);
 				terrainImages.put(type, img);

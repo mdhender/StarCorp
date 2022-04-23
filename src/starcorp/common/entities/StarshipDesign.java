@@ -19,6 +19,7 @@ import org.dom4j.Element;
 import starcorp.common.types.AItemType;
 import starcorp.common.types.GalacticDate;
 import starcorp.common.types.Items;
+import starcorp.common.types.Resources;
 import starcorp.common.types.StarshipHulls;
 
 /**
@@ -255,6 +256,22 @@ public class StarshipDesign extends ANamedEntity {
 			StarshipHulls hull = (StarshipHulls) item.getTypeClass();
 			if(hull.isPlanetProbe())
 				return true;
+		}
+		return false;
+	}
+	
+	public boolean canProspect(AItemType type) {
+		if(type instanceof Resources) {
+			Resources r = (Resources) type;
+			if(r.isOrganic()) {
+				return hasBioLab();
+			}
+			if(r.isFissile() || r.isMetal() || r.isMineral()) {
+				return hasPhysicsLab();
+			}
+			if(r.isFuel() || r.isGas() || r.isLiquid()) {
+				return hasGeoLab();
+			}
 		}
 		return false;
 	}

@@ -67,6 +67,7 @@ public class GeneratorProcessor extends AServerTask {
 		double efficiency = generator.getEfficiency(workers);
 		ResourceGenerator type = (ResourceGenerator) generator.getTypeClass();
 		
+		int total = 0;
 		for(ResourceDeposit deposit : deposits){
 			if(deposit.getTotalQuantity() < deposit.getYield()) {
 				continue;
@@ -79,6 +80,7 @@ public class GeneratorProcessor extends AServerTask {
 				if(qty > deposit.getTotalQuantity()) {
 					qty = deposit.getTotalQuantity();
 				}
+				total += qty;
 				ColonyItem item = entityStore.getItem(colony.getID(), owner, deposit.getTypeClass());
 				if(item == null) {
 					item = new ColonyItem();
@@ -95,6 +97,12 @@ public class GeneratorProcessor extends AServerTask {
 					log.debug(this + ": " + generator + " generated " + qty + " x " + deposit.getType());
 			}
 			
+		}
+		
+		if(total < 1) {
+			generator.setOpen(false);
+			entityStore.update(generator);
+			log.info("Closed " + generator + " as no suitable resources can be gathered.");
 		}
 	}
 

@@ -10,6 +10,7 @@
  */
 package starcorp.common.types;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -94,6 +95,17 @@ public class Resources extends AItemType {
 			Resources r = (Resources) i.next();
 			if(!r.isLiquid())
 				i.remove();
+		}
+		return list;
+	}
+	
+	public List<AFacilityType> listGenerators() {
+		List<AFacilityType> list = new ArrayList<AFacilityType>();
+		for(AFacilityType type : AFacilityType.listTypes(ResourceGenerator.class)) {
+			ResourceGenerator rg = (ResourceGenerator) type;
+			if(rg.canGenerate(this)) {
+				list.add(rg);
+			}
 		}
 		return list;
 	}

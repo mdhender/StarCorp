@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import starcorp.client.gui.ABuilderPane;
 import starcorp.client.gui.ADataEntryWindow;
+import starcorp.client.gui.ASearchWindow;
 import starcorp.client.gui.ATablePane;
 import starcorp.client.gui.panes.MarketTable;
 import starcorp.client.gui.panes.SearchMarketBuilder;
@@ -32,40 +33,37 @@ import starcorp.common.types.Items;
  * @author Seyed Razavi <monkeyx@gmail.com>
  * @version 25 Sep 2007
  */
-public class SearchMarketWindow extends ADataEntryWindow {
-	public static final int ITEMS_PER_PAGE = 20;
-	
-	private int page;
+public class SearchMarketWindow extends ASearchWindow {
 	private int filterQuantity;
 	private String filterName;
 	private AItemType filterType;
 	private Colony filterColony;
 	private int filterPrice;
-	private List<MarketItem> filteredItems;
 
 	private final List<MarketItem> allItems;
-	private final TurnReport report;
+	private List<MarketItem> filteredItems;
+	
+	private SearchMarketBuilder builder;
 	
 	public SearchMarketWindow(MainWindow mainWindow) {
-		this(mainWindow,1,0,-1,null,null,null);
+		this(mainWindow,0,-1,null,null,null);
 	}
 	
-	public SearchMarketWindow(MainWindow mainWindow, int page, int filterQuantity, int filterPrice, String filterName, AItemType filterType, Colony filterColony) {
+	public SearchMarketWindow(MainWindow mainWindow, int filterQuantity, int filterPrice, String filterName, AItemType filterType, Colony filterColony) {
 		super(mainWindow);
-		this.page = page;
 		this.filterQuantity = filterQuantity;
 		this.filterName = filterName;
 		this.filterType = filterType;
 		this.filterColony = filterColony;
-		this.report = mainWindow.getTurnReport();
-		this.allItems = report.getMarket();
+		this.allItems = getReport().getMarket();
 		this.filterPrice = filterPrice;
 		this.filteredItems = new ArrayList<MarketItem>(allItems);
 	}
 
 	@Override
 	protected ABuilderPane createBuilder() {
-		return new SearchMarketBuilder(this);
+		builder = new SearchMarketBuilder(this);
+		return builder;
 	}
 
 	@Override
@@ -101,7 +99,7 @@ public class SearchMarketWindow extends ADataEntryWindow {
 		return pages;
 	}
 	
-	private void filter() {
+	protected void filter() {
 		if(filteredItems == null) {
 			filteredItems = new ArrayList<MarketItem>();
 		}
@@ -143,9 +141,9 @@ public class SearchMarketWindow extends ADataEntryWindow {
 		this.filterName = filterName;
 		this.filterType = filterType;
 		this.filterColony = filterColony;
-		this.page = 1;
 		this.filterPrice = filterPrice;
 		filter();
+		setPage(1);
 		reload();
 	}
 
@@ -153,57 +151,20 @@ public class SearchMarketWindow extends ADataEntryWindow {
 		return filteredItems.get(index);
 	}
 
-	public int getPage() {
-		return page;
-	}
-
-	public void setPage(int page) {
-		if(page > countPages()) {
-			page = countPages();
-		}
-		else if(page < 1) {
-			page = 1;
-		}
-		this.page = page;
-		reload();
-	}
-
 	public String getFilterName() {
 		return filterName;
-	}
-
-	public void setFilterName(String filterName) {
-		this.filterName = filterName;
-		filter();
-		reload();
 	}
 
 	public AItemType getFilterType() {
 		return filterType;
 	}
 
-	public void setFilterType(AItemType filterType) {
-		this.filterType = filterType;
-		filter();
-		reload();
-	}
-
 	public Colony getFilterColony() {
 		return filterColony;
 	}
 
-	public void setFilterColony(Colony filterColony) {
-		this.filterColony = filterColony;
-		filter();
-		reload();
-	}
-
 	public List<MarketItem> getAllItems() {
 		return allItems;
-	}
-
-	public TurnReport getReport() {
-		return report;
 	}
 
 	public List<MarketItem> getFilteredItems() {
@@ -230,9 +191,14 @@ public class SearchMarketWindow extends ADataEntryWindow {
 		return filterPrice;
 	}
 
-	public void setFilterPrice(int filterPrice) {
-		this.filterPrice = filterPrice;
-		filter();
-		reload();
+	@Override
+	public void clear() {
+		set(0, -1, "", null, null);
 	}
+	
+	@Override
+	public void search() {
+		set(builder.getFilterQuantity(), builder.getFilterPrice(), builder.getFilterName(), builder.getFilterType(), builder.getFilterColony());
+	}
+	
 }

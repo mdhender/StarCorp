@@ -13,8 +13,6 @@ package starcorp.client.gui.panes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -103,7 +101,7 @@ public class ColonyPane extends AEntityPane {
 		createLabel(grp,widgets, "Price (ea.)");
 		createLabel(grp, widgets, "");
 		
-		Set<MarketItem> set = getTurnReport().getMarketByColony().get(colony.getID());
+		List<MarketItem> set = getTurnReport().getMarketByColony().get(colony.getID());
 		if(set != null) {
 			Iterator<MarketItem> i = set.iterator();
 			for(int count = 0; i.hasNext() && count < (MARKET_ITEMS_PER_PAGE * (page - 1));count++) {

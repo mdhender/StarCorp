@@ -49,6 +49,10 @@ public class CorporationSellItem extends AOrderProcessor {
 		Colony colony = (Colony) entityStore.load(Colony.class, colonyId);
 		AItemType type = AItemType.getType(itemTypeKey);
 		
+		if(corp.getID() < 1) {
+			corp = entityStore.getCorporation(corp.getPlayerEmail());
+		}
+		
 		if(colony == null) {
 			error = new TurnError(TurnError.INVALID_COLONY,order);
 		}
@@ -70,16 +74,14 @@ public class CorporationSellItem extends AOrderProcessor {
 			}
 			else {
 				quantity = colonyItem.getItem().remove(quantity);
-				Items item = new Items();
-				item.setQuantity(quantity);
-				item.setTypeClass(type);
+				entityStore.update(colonyItem);
 				
 				MarketItem marketItem = new MarketItem();
 				marketItem.setColony(colony.getID());
 				marketItem.setCostPerItem(price);
 				marketItem.setIssuedDate(ServerConfiguration.getCurrentDate());
 				marketItem.setSeller(corp.getID());
-				marketItem.setItem(item);
+				marketItem.setItem(new Items(type,quantity));
 				
 				entityStore.create(marketItem);
 				

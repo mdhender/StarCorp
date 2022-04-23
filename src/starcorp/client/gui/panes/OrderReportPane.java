@@ -11,6 +11,7 @@
 package starcorp.client.gui.panes;
 
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -56,8 +57,8 @@ public class OrderReportPane extends ADataPane {
 
 	@Override
 	protected void createWidgets(List<Widget> widgets) {
-		createLabel(getParent(),widgets,order.toString());
-		
+		Group grpSummary = createGroup(getParent(), widgets, order.toString());
+		grpSummary.setLayout(new GridLayout(2,false));
 		String txt = null;
 		if(report != null) {
 			if(report.getDescription() != null) {
@@ -71,25 +72,19 @@ public class OrderReportPane extends ADataPane {
 		if(txt == null) {
 			txt = "No report for this order.";
 		}
-		
-		createLabel(getParent(), widgets, txt).setLayoutData(new GridData(SWT.CENTER,SWT.CENTER,true,true,2,1));
+		createLabel(grpSummary, widgets, txt).setLayoutData(new GridData(SWT.CENTER,SWT.TOP,true,true,2,1));
 		
 		if(report != null) {
-//			System.out.println(report);
 			IEntity subject = report.getSubject();
 			if(subject != null) {
-				Group grp = createGroup(getParent(), widgets, "Subject");
-				grp.setLayout(new GridLayout(2,true));
-				
-				displayEntity(grp, widgets, subject);
+				createLabel(grpSummary, widgets, "Subject:");
+				displayEntity(grpSummary, widgets, subject);
 			}
 			
 			IEntity target = report.getTarget();
 			if(target != null) {
-				Group grp = createGroup(getParent(), widgets, "Target");
-				grp.setLayout(new GridLayout(2,true));
-				
-				displayEntity(grp, widgets, target);
+				createLabel(grpSummary, widgets, "Target:");
+				displayEntity(grpSummary, widgets, target);
 			}
 			
 			PlanetMapSquare sq = report.getScannedLocation();
@@ -106,12 +101,12 @@ public class OrderReportPane extends ADataPane {
 				createLabel(grp,widgets,String.valueOf(terrain.getHazardLevel()));
 			}
 			
-			List<?> scanned = report.getScannedEntities(); 
+			Set<?> scanned = report.getScannedEntities(); 
 			
 			if(scanned.size() > 0) {
 				Group grp = createGroup(getParent(), widgets, "Scanned");
 				grp.setLayoutData(new GridData(SWT.LEFT,SWT.TOP,true,true,2,1));
-				grp.setLayout(new GridLayout(2,true));
+				grp.setLayout(new GridLayout(4,true));
 				for(Object o : scanned) {
 					displayEntity(grp, widgets, o);
 				}
@@ -154,8 +149,7 @@ public class OrderReportPane extends ADataPane {
 		}
 		else if(o instanceof StarSystem) {
 			StarSystem system = (StarSystem) o;
-			createLabel(grp, widgets, system.getDisplayName() + " @ " + system.getLocation())
-			.setLayoutData(new GridData(SWT.LEFT,SWT.DEFAULT,true,true,2,1));
+			createLabel(grp, widgets, system.getDisplayName() + " @ " + system.getLocation());
 		}
 		else if(o instanceof IEntity) {
 			IEntity entity = (IEntity) o;

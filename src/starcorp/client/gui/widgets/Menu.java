@@ -54,7 +54,6 @@ public class Menu implements IComponent  {
 
 	public void open(Composite parent) {
 		final Shell shell = (Shell) parent; 
-		// TODO keyboard accelerators for menu items
 		menu = new org.eclipse.swt.widgets.Menu(shell, SWT.BAR);
 		menu.setVisible(true);
 		shell.setMenuBar(menu);
@@ -87,8 +86,9 @@ public class Menu implements IComponent  {
 		
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 		
-		MenuItem load = new MenuItem(fileMenu, SWT.PUSH);
-		load.setText("&Load report");
+		MenuItem load = new MenuItem(fileMenu, SWT.CASCADE);
+		load.setText("&Load report\tF1");
+		load.setAccelerator(SWT.F1);
 		load.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openLoadReport();
@@ -97,16 +97,18 @@ public class Menu implements IComponent  {
 		
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 		
-		MenuItem loadTurn = new MenuItem(fileMenu, SWT.PUSH);
-		loadTurn.setText("Load &turn");
+		MenuItem loadTurn = new MenuItem(fileMenu, SWT.CASCADE);
+		loadTurn.setText("Load &turn\tF3");
+		loadTurn.setAccelerator(SWT.F3);
 		loadTurn.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openLoadTurn();
 			}
 		});
 		
-		save = new MenuItem(fileMenu, SWT.PUSH);
-		save.setText("&Save turn");
+		save = new MenuItem(fileMenu, SWT.CASCADE);
+		save.setText("&Save turn\tF2");
+		save.setAccelerator(SWT.F2);
 		save.setEnabled(false);
 		save.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -116,8 +118,9 @@ public class Menu implements IComponent  {
 		
 		new MenuItem(fileMenu, SWT.SEPARATOR);
 		
-		MenuItem exit = new MenuItem(fileMenu, SWT.PUSH);
-		exit.setText("E&xit");
+		MenuItem exit = new MenuItem(fileMenu, SWT.CASCADE);
+		exit.setText("E&xit\tF12");
+		exit.setAccelerator(SWT.F12);
 		exit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.close();
@@ -128,16 +131,18 @@ public class Menu implements IComponent  {
 		turn.setText("&Turn");
 		turn.setMenu(turnMenu);
 		
-		MenuItem newOrder = new MenuItem(turnMenu, SWT.PUSH);
-		newOrder.setText("&Prepare");
+		MenuItem newOrder = new MenuItem(turnMenu, SWT.CASCADE);
+		newOrder.setText("&Prepare\tF3");
+		newOrder.setAccelerator(SWT.F3);
 		newOrder.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openTurnWindow();
 			}
 		});
 		
-		submit = new MenuItem(turnMenu, SWT.PUSH);
-		submit.setText("&Submit");
+		submit = new MenuItem(turnMenu, SWT.CASCADE);
+		submit.setText("&Submit\tF4");
+		submit.setAccelerator(SWT.F4);
 		submit.setEnabled(false);
 		submit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -150,24 +155,27 @@ public class Menu implements IComponent  {
 		search.setText("Search");
 		search.setMenu(searchMenu);
 		
-		MenuItem markets = new MenuItem(searchMenu,SWT.PUSH);
-		markets.setText("Search markets");
+		MenuItem markets = new MenuItem(searchMenu,SWT.CASCADE);
+		markets.setText("Search markets\tF6");
+		markets.setAccelerator(SWT.F6);
 		markets.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openSearchMarketWindow();
 			}
 		});
 		
-		MenuItem items = new MenuItem(searchMenu,SWT.PUSH);
-		items.setText("Search items");
+		MenuItem items = new MenuItem(searchMenu,SWT.CASCADE);
+		items.setText("Search items\tF7");
+		items.setAccelerator(SWT.F7);
 		items.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openSearchItemsWindow();
 			}
 		});
 		
-		MenuItem laws = new MenuItem(searchMenu,SWT.PUSH);
-		laws.setText("Search grants and leases");
+		MenuItem laws = new MenuItem(searchMenu,SWT.CASCADE);
+		laws.setText("Search grants and leases\tF8");
+		laws.setAccelerator(SWT.F8);
 		laws.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				mainWindow.openSearchLawWindow();

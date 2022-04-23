@@ -281,7 +281,7 @@ public class ColonyUpdater extends AServerTask {
 			return;
 		Facility facility = (Facility) entityStore.load(Facility.class, workers.getFacility());
 		long employer = facility.getOwner();
-		long credits = entityStore.getCredits(employer);
+		long credits = facility.isOpen() ? entityStore.getCredits(employer) : 0;
 		long salaryAvail = credits / workers.getSalary();
 		int qty = workers.getQuantity();
 //		if(log.isDebugEnabled())

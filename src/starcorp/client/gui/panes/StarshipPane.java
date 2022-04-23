@@ -414,12 +414,13 @@ public class StarshipPane extends AEntityPane {
 			Group grpCargoActions = createGroup(grpCargo, widgets, "Actions");
 			grpCargoActions.setLayout(new GridLayout(5,false));
 			grpCargoActions.setLayoutData(new GridData(SWT.LEFT,SWT.TOP,false,false));
-			final Text txtJettisonQty = createTextInput(grpCargoActions, widgets, "Quantity:");
-			txtJettisonQty.setLayoutData(new GridData(SWT.LEFT,SWT.DEFAULT,true,true,3,1));
+			final Text txtQty = createTextInput(grpCargoActions, widgets, "Quantity:");
+			int txtColSpan = ship.getColony() == 0 ? 3 : 2; 
+			txtQty.setLayoutData(new GridData(SWT.LEFT,SWT.DEFAULT,true,true,txtColSpan,1));
 			final Button btnJettison = createButton(grpCargoActions, widgets, "Jettison");
 			btnJettison.addListener(SWT.Selection, new Listener() {
 				public void handleEvent (Event event) {
-					int qty = getIntegerTextValue(txtJettisonQty);
+					int qty = getIntegerTextValue(txtQty);
 					for(int i = 0; i < size; i++) {
 						if(checkboxes[i] != null && checkboxes[i].getSelection()) {
 							Items item = (Items) checkboxes[i].getData();
@@ -430,12 +431,25 @@ public class StarshipPane extends AEntityPane {
 				}
 			});
 			if(ship.getColony() > 0) {
-				final Text txtQty = createTextInput(grpCargoActions, widgets, "Quantity:");
+				final Button btnDeliver = createButton(grpCargoActions, widgets, "Deliver");
+				btnDeliver.addListener(SWT.Selection, new Listener() {
+					public void handleEvent (Event event) {
+						int qty = getIntegerTextValue(txtQty);
+						for(int i = 0; i < size; i++) {
+							if(checkboxes[i] != null && checkboxes[i].getSelection()) {
+								Items item = (Items) checkboxes[i].getData();
+								TurnOrder order = deliverOrder(ship, item.getTypeClass(), qty);
+								mainWindow.addTurnOrder(order);
+							}
+						}
+					}
+				});
+				final Text txtSellQty = createTextInput(grpCargoActions, widgets, "Quantity:");
 				final Text txtPrice = createTextInput(grpCargoActions, widgets, "Price:");
 				final Button btnSell = createButton(grpCargoActions, widgets, "Sell");
 				btnSell.addListener(SWT.Selection, new Listener() {
 					public void handleEvent (Event event) {
-						int qty = getIntegerTextValue(txtQty);
+						int qty = getIntegerTextValue(txtSellQty);
 						int price = getIntegerTextValue(txtPrice);
 						for(int i = 0; i < size; i++) {
 							if(checkboxes[i] != null && checkboxes[i].getSelection()) {
@@ -452,12 +466,12 @@ public class StarshipPane extends AEntityPane {
 				if(colonies.size() > 0) {
 					final Combo c = createEntitySelection(grpCargoActions, widgets, colonies, "Colony:");
 					c.setLayoutData(new GridData(SWT.LEFT,SWT.TOP,false,false,4,1));
-					final Text txtQty = createTextInput(grpCargoActions, widgets, "Quantity:");
+					final Text txtSellQty = createTextInput(grpCargoActions, widgets, "Quantity:");
 					final Text txtPrice = createTextInput(grpCargoActions, widgets, "Price:");
 					final Button btnSell = createButton(grpCargoActions, widgets, "Sell");
 					btnSell.addListener(SWT.Selection, new Listener() {
 						public void handleEvent (Event event) {
-							int qty = getIntegerTextValue(txtQty);
+							int qty = getIntegerTextValue(txtSellQty);
 							int price = getIntegerTextValue(txtPrice);
 							Colony colony = (Colony) getComboValue(c);
 							for(int i = 0; i < size; i++) {

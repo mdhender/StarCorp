@@ -12,19 +12,25 @@ package starcorp.client.gui.panes;
 
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 import starcorp.client.gui.ADataEntryWindow;
 import starcorp.client.gui.ATablePane;
+import starcorp.client.gui.ASearchWindow;
 import starcorp.client.gui.widgets.Hyperlink;
-import starcorp.client.gui.windows.SearchItemsWindow;
 import starcorp.client.gui.windows.SearchMarketWindow;
 import starcorp.common.entities.Colony;
 import starcorp.common.entities.MarketItem;
+import starcorp.common.turns.TurnOrder;
 import starcorp.common.types.Items;
 
 /**
@@ -36,6 +42,9 @@ import starcorp.common.types.Items;
 public class MarketTable extends ATablePane {
 
 	private final SearchMarketWindow searchWindow;
+	
+	private int start;
+	private int end;
 	
 	public MarketTable(ADataEntryWindow mainWindow) {
 		super(mainWindow);
@@ -72,8 +81,8 @@ public class MarketTable extends ATablePane {
 		}
 		else {
 			int page = searchWindow.getPage();
-			int start = (page - 1) * SearchItemsWindow.ITEMS_PER_PAGE;
-			int end = start + SearchItemsWindow.ITEMS_PER_PAGE;
+			start = (page - 1) * ASearchWindow.ITEMS_PER_PAGE;
+			end = start + ASearchWindow.ITEMS_PER_PAGE;
 			System.out.println("ItemsTable populate: " + total + " total " + page + " page " + start + " start " + end + " end");
 			if(start < 0) start = 0;
 			if(end > total) end = total;
@@ -107,26 +116,25 @@ public class MarketTable extends ATablePane {
 	@Override
 	protected void createWidgets(List<Widget> widgets) {
 		super.createWidgets(widgets);
-		if(searchWindow.countPages() > 1) { 
-			Group grpPages = createGroup(getParent(), widgets, "Pages");
-			grpPages.setLayout(new GridLayout(searchWindow.countPages(),true));
-			for(int i = 1; i <= searchWindow.countPages(); i++) {
-				if(i == searchWindow.getPage()) {
-					createLabel(grpPages, widgets, String.valueOf(i));
+		Group grp = createGroup(getParent(), widgets, "Buy");
+		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
+		layout.marginWidth=10;
+		layout.marginHeight=5;
+		grp.setLayout(layout);
+		final Text txtQuantity = createIntegerInput(grp, widgets, "Quantity:");
+		createButton(grp, widgets, "Buy")
+		.addListener(SWT.Selection, new Listener() {
+			public void handleEvent (Event event) {
+				for(int i : getChecked()) {
+					int n = start + i;
+					int qty = getIntegerTextValue(txtQuantity);
+					MarketItem item = searchWindow.get(n);
+					TurnOrder order = buyOrder(item, qty);
+					getWindow().getMainWindow().addTurnOrder(order);
 				}
-				else {
-					Hyperlink lnk = createHyperlink(grpPages, widgets, String.valueOf(i));
-					final int selected = i;
-					lnk.addSelectionListener(new SelectionListener() {
-						public void widgetDefaultSelected(SelectionEvent e) {
-							searchWindow.setPage(selected);
-						}
-						public void widgetSelected(SelectionEvent e) {
-							searchWindow.setPage(selected);
-						}
-					});
-				}
+				getWindow().redraw();
 			}
-		}
+		});
+		
 	}
 }

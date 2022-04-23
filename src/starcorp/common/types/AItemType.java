@@ -40,7 +40,7 @@ public abstract class AItemType extends ABaseType {
 		System.out.print("\n");
 		Iterator<AItemType> i = types.iterator();
 		System.out.println("= " + category + " =");
-		System.out.println("|| *Key* || *Name* || *MU* || *Category* || *Sub-Category* ||");
+		System.out.println("|| *Key* || *Name* || *MU* || *Category* || *Sub-Category* || *NPC Price* ||");
 		while(i.hasNext()) {
 			AItemType type = i.next();
 			type.print();
@@ -208,8 +208,12 @@ public abstract class AItemType extends ABaseType {
 		return getResourceAsInt(this,"mass");
 	}
 	
+	public int getNPCPrice() {
+		return getResourceAsInt(this, "npc-price");
+	}
+	
 	public void print() {
-		System.out.print("|| " + key + " || " + getName() + " || " + getMassUnits() + " || " + getCategory() + " || " + getSubCategory() + " ||");
+		System.out.print("|| " + key + " || " + getName() + " || " + getMassUnits() + " || " + getCategory() + " || " + getSubCategory() + " || " + getNPCPrice() + " || ");
 		if(this instanceof AFactoryItem) {
 			AFactoryItem fac = (AFactoryItem) this;
 			Iterator<Items> j = fac.getComponent().iterator();

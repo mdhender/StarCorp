@@ -57,7 +57,7 @@ public abstract class ATablePane extends AWindowPane {
 	}
 	
 	protected int getTableStyle() {
-		return SWT.BORDER | SWT.MULTI;
+		return SWT.BORDER | SWT.MULTI | SWT.CHECK;
 	}
 	
 	protected boolean isHeaderVisible() {
@@ -163,8 +163,14 @@ public abstract class ATablePane extends AWindowPane {
 		return item;
 	}
 	
+	public void delete(int row) {
+		table.remove(row);
+		items.remove(row);
+	}
+	
 	public void clear() {
 		table.removeAll();
+		items.clear();
 	}
 	
 	protected void createTableEditor(Control c, int row, int column) {
@@ -205,6 +211,19 @@ public abstract class ATablePane extends AWindowPane {
 
 	public Point computeSize() {
 		return table.computeSize(SWT.DEFAULT, SWT.DEFAULT);
+	}
+	
+	public List<Integer> getChecked() {
+		List<Integer> checked = new ArrayList<Integer>();
+		TableItem[] items = table.getItems();
+		int i = 0;
+		for(TableItem item : items) {
+			if(item.getChecked()) {
+				checked.add(i);
+			}
+			i++;
+		}
+		return checked;
 	}
 
 }

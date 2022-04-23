@@ -59,7 +59,7 @@ Section "StarCorp Client (required)" SecDummy
   ;Files to be installed
   SetOutPath "$INSTDIR"
   
-   	File "StarCorp-client-0.9.0.0.exe"
+   	File "StarCorp-client-0.9.1.0.exe"
    	File "launch4j\icon.ico"
 	File "swt-win32-3235.dll"
 	File "appsettings.ini"
@@ -91,7 +91,7 @@ SectionEnd
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\StarCorp Client"
   CreateShortCut "$SMPROGRAMS\StarCorp Client\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe"
-  CreateShortCut "$SMPROGRAMS\StarCorp Client\StarCorp Client.lnk" "$INSTDIR\StarCorp-client-0.9.0.0.exe" "" "$INSTDIR\icon.ico"
+  CreateShortCut "$SMPROGRAMS\StarCorp Client\StarCorp Client.lnk" "$INSTDIR\StarCorp-client-0.9.1.0.exe" "" "$INSTDIR\icon.ico"
 SectionEnd
 
 ;--------------------------------

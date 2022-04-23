@@ -17,15 +17,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Widget;
 
 import starcorp.client.gui.ABuilderPane;
-import starcorp.client.gui.ADataEntryWindow;
-import starcorp.client.gui.AWindow;
 import starcorp.client.gui.windows.StarshipDesignWindow;
 import starcorp.common.turns.Turn;
 import starcorp.common.turns.TurnOrder;

@@ -10,9 +10,12 @@
  */
 package starcorp.client.gui.widgets;
 
+import java.io.InputStream;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -33,6 +36,8 @@ import starcorp.common.entities.Corporation;
  * @version 25 Sep 2007
  */
 public class CredentialsDialog extends Dialog {
+	private static final String ICON_RESOURCE_NAME = "/images/32x32.png";
+	
 	private String message;
 	private Corporation credentials;
 	
@@ -58,6 +63,11 @@ public class CredentialsDialog extends Dialog {
 	public Corporation open() {
 		final Shell shell = new Shell(getParent(), getStyle());
 		shell.setText(getText());
+		InputStream is = getClass().getResourceAsStream(ICON_RESOURCE_NAME);
+		if(is != null) {
+			Image icon = new Image(shell.getDisplay(),is);
+			shell.setImage(icon);
+		}
 		createContents(shell);
 		shell.setSize(300, 180);
 		center(shell);

@@ -132,7 +132,7 @@ public abstract class AFacilityType extends ABaseType {
 		System.out.print("\n");
 		Iterator<AFacilityType> i = types.iterator();
 		System.out.println("= " + category + " =");
-		System.out.println("|| *Key* || *Name* || *Power* || *Workers* || *Modules* ||");
+		System.out.println("|| *Key* || *Name* || *Power* || *Workers* || *Modules* || *Typical Price* ||");
 		while(i.hasNext()) {
 			AFacilityType type = i.next();
 			type.print();
@@ -174,7 +174,10 @@ public abstract class AFacilityType extends ABaseType {
 			}
 		}
 		s.append(" ||");
+		s.append(getTypicalPrice());
+		s.append(" ||");
 		s.append(getSubCategory());
+		s.append(" ||");
 		System.out.println(s.toString());
 	}
 	
@@ -281,6 +284,14 @@ public abstract class AFacilityType extends ABaseType {
 		}
 		
 		return ((double) requiredTotal / (double) currentTotal) * 100.0; 
+	}
+	
+	public int getTypicalPrice() {
+		int price = 0;
+		for(Items item : getBuildingRequirement()) {
+			price += (item.getQuantity() * item.getTypeClass().getNPCPrice());
+		}
+		return price;
 	}
 
 	@Override

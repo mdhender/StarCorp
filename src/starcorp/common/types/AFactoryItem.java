@@ -39,5 +39,15 @@ public abstract class AFactoryItem extends AItemType {
 		}
 		return items;
 	}
+
+	@Override
+	public int getNPCPrice() {
+		int price = 0;
+		for(Items item : getComponent()) {
+			price += (item.getQuantity() * item.getTypeClass().getNPCPrice());
+		}
+		price = (int) Math.round((double) price * 1.20);
+		return price;
+	}
 	
 }

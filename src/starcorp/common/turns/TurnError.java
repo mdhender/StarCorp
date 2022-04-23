@@ -26,6 +26,7 @@ public class TurnError {
 	protected static final ResourceBundle bundle = ResourceBundle.getBundle("starcorp.common.turns.errors");
 
 	public static final TurnError ERROR_AUTHORIZATION_FAILED = new TurnError("error.authorization",null);
+	public static final TurnError ERROR_VERSION_INVALID = new TurnError("error.version",null);
 	
 	public static final String INVALID_ORDER_TYPE = "error.order.type";
 	public static final String INVALID_LOCATION = "error.order.location";
@@ -33,6 +34,8 @@ public class TurnError {
 	public static final String INVALID_FACILITY = "error.facility";
 	public static final String INVALID_FACILITY_TYPE = "error.facility.type";
 	public static final String INSUFFICIENT_BUILDING_MODULES = "error.facility.modules";
+	public static final String INSUFFICIENT_CREDITS = "error.credits";
+	public static final String NO_SUCH_LAW = "error.law.none";
 	public static final String NO_LEASE = "error.lease.none";
 	public static final String INVALID_SHIP = "error.ship";
 	public static final String INVALID_SHIP_DESIGN = "error.ship.design";

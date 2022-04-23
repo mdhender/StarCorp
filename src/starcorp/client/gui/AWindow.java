@@ -1,6 +1,9 @@
 package starcorp.client.gui;
 
+import java.io.InputStream;
+
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
@@ -12,7 +15,8 @@ import org.eclipse.swt.widgets.Shell;
 import starcorp.client.gui.windows.MainWindow;
 
 public abstract class AWindow implements IComponent {
-
+	private static final String ICON_RESOURCE_NAME = "/images/32x32.png";
+	private Image icon;
 	protected final Display display;
 	protected final Shell shell;
 
@@ -28,6 +32,12 @@ public abstract class AWindow implements IComponent {
 		    	  close();
 		      }
 		});
+		InputStream is = getClass().getResourceAsStream(ICON_RESOURCE_NAME);
+		if(is != null) {
+			this.icon = new Image(display,is);
+			this.shell.setImage(this.icon);
+		}
+		 
 	}
 	
 	public abstract MainWindow getMainWindow();
@@ -62,6 +72,9 @@ public abstract class AWindow implements IComponent {
 	}
 
 	protected void close() {
+		if(icon != null && !icon.isDisposed()) {
+			icon.dispose();
+		}
 		dispose();
 	}
 
@@ -98,5 +111,9 @@ public abstract class AWindow implements IComponent {
 		} else if (!shell.equals(other.shell))
 			return false;
 		return true;
+	}
+
+	public Image getIcon() {
+		return icon;
 	}
 }

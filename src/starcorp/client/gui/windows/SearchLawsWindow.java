@@ -17,11 +17,13 @@ import org.eclipse.swt.widgets.Composite;
 
 import starcorp.client.gui.ABuilderPane;
 import starcorp.client.gui.ADataEntryWindow;
+import starcorp.client.gui.ASearchWindow;
 import starcorp.client.gui.ATablePane;
 import starcorp.client.gui.panes.LawTable;
 import starcorp.client.gui.panes.SearchLawBuilder;
 import starcorp.common.entities.AGovernmentLaw;
 import starcorp.common.entities.Colony;
+import starcorp.common.entities.FacilityLease;
 import starcorp.common.turns.TurnReport;
 
 /**
@@ -30,28 +32,29 @@ import starcorp.common.turns.TurnReport;
  * @author Seyed Razavi <monkeyx@gmail.com>
  * @version 25 Sep 2007
  */
-public class SearchLawsWindow extends ADataEntryWindow {
+public class SearchLawsWindow extends ASearchWindow {
 	// TODO sorting by column
-	public static final int ITEMS_PER_PAGE = 20;
-	
-	private int page;
 	private Colony filterColony;
+	private long filterLicensee;
+	private Class filterType;
 	private List<AGovernmentLaw> filteredLaws;
 
 	private final List<AGovernmentLaw> allLaws;
-	private final TurnReport report;
+	
+	private SearchLawBuilder builder; 
 	
 	public SearchLawsWindow(MainWindow mainWindow) {
-		this(mainWindow,1,null);
+		this(mainWindow,-1,null,null);
 	}
 	
-	public SearchLawsWindow(MainWindow mainWindow, int page, Colony filterColony) {
+	public SearchLawsWindow(MainWindow mainWindow, long filterLicensee, Colony filterColony, Class filterType) {
 		super(mainWindow);
-		this.page = page;
+		this.filterLicensee = filterLicensee;
 		this.filterColony = filterColony;
-		this.report = mainWindow.getTurnReport();
-		this.allLaws = report.getLaws();
+		this.filterType = filterType;
+		this.allLaws = getReport().getLaws();
 		this.filteredLaws = new ArrayList<AGovernmentLaw>(allLaws);
+		filter();
 	}
 
 	public int countAllItems() {
@@ -62,21 +65,7 @@ public class SearchLawsWindow extends ADataEntryWindow {
 		return (filteredLaws == null ? 0 : filteredLaws.size());
 	}
 	
-	public int countPages() {
-		int total;
-		if(filteredLaws == null) {
-			total = allLaws.size();
-		}
-		else {
-			total = filteredLaws.size();
-		}
-		int pages = total / ITEMS_PER_PAGE;
-		if(total % ITEMS_PER_PAGE > 0)
-			pages++;
-		return pages;
-	}
-	
-	private void filter() {
+	protected void filter() {
 		if(filteredLaws == null) {
 			filteredLaws = new ArrayList<AGovernmentLaw>();
 		}
@@ -88,6 +77,17 @@ public class SearchLawsWindow extends ADataEntryWindow {
 			boolean filter = false;
 			long colonyId = law.getColony();
 			
+			if(!filter && filterType != null) {
+				if(!(law.getClass().equals(filterType))) filter = true;
+			}
+			
+			if(!filter && filterLicensee > -1) {
+				if(law instanceof FacilityLease) {
+					FacilityLease lease = (FacilityLease) law;
+					if(lease.getLicensee() != filterLicensee) filter = true;
+				}
+			}
+			
 			if(!filter && filterColony != null) {
 				if(filterColony.getID() != colonyId) filter = true;
 			}
@@ -98,10 +98,12 @@ public class SearchLawsWindow extends ADataEntryWindow {
 		}
 	}
 	
-	public void set(Colony filterColony) {
+	public void set(long filterLicensee, Class<?> filterType, Colony filterColony) {
 		this.filterColony = filterColony;
-		this.page = 1;
+		this.filterType = filterType;
+		this.filterLicensee = filterLicensee;
 		filter();
+		setPage(1);
 		reload();
 	}
 	
@@ -109,37 +111,20 @@ public class SearchLawsWindow extends ADataEntryWindow {
 		return filteredLaws.get(index);
 	}
 
-	public int getPage() {
-		return page;
-	}
-
-	public void setPage(int page) {
-		if(page > countPages()) {
-			page = countPages();
-		}
-		else if(page < 1) {
-			page = 1;
-		}
-		this.page = page;
-		reload();
-	}
-
 	public Colony getFilterColony() {
 		return filterColony;
 	}
 
-	public void setFilterColony(Colony filterColony) {
-		this.filterColony = filterColony;
-		filter();
-		reload();
+	public Class<?> getFilterType() {
+		return filterType;
+	}
+
+	public long getFilterLicensee() {
+		return filterLicensee;
 	}
 
 	public List<AGovernmentLaw> getAllLaws() {
 		return allLaws;
-	}
-
-	public TurnReport getReport() {
-		return report;
 	}
 
 	public List<AGovernmentLaw> getFilteredLaws() {
@@ -154,7 +139,8 @@ public class SearchLawsWindow extends ADataEntryWindow {
 	
 	@Override
 	protected ABuilderPane createBuilder() {
-		return new SearchLawBuilder(this);
+		builder = new SearchLawBuilder(this);
+		return builder;
 	}
 
 	@Override
@@ -167,4 +153,16 @@ public class SearchLawsWindow extends ADataEntryWindow {
 		super.close();
 		mainWindow.searchLawsWindow = null;
 	}
+
+	@Override
+	public void clear() {
+		set(-1, null, null);
+	}
+
+	@Override
+	public void search() {
+		set(builder.getFilterLicensee(), builder.getFilterType(), builder.getFilterColony());
+		
+	}
+
 }

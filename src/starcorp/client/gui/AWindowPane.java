@@ -43,19 +43,27 @@ import starcorp.client.gui.panes.StarshipPane;
 import starcorp.client.gui.panes.SystemEntityPane;
 import starcorp.client.gui.widgets.Hyperlink;
 import starcorp.common.entities.AColonists;
+import starcorp.common.entities.AGovernmentLaw;
 import starcorp.common.entities.Colony;
 import starcorp.common.entities.Corporation;
 import starcorp.common.entities.Facility;
 import starcorp.common.entities.IEntity;
+import starcorp.common.entities.MarketItem;
 import starcorp.common.entities.Planet;
+import starcorp.common.entities.StarSystem;
 import starcorp.common.entities.StarSystemEntity;
 import starcorp.common.entities.Starship;
 import starcorp.common.entities.StarshipDesign;
+import starcorp.common.entities.StellarAnomoly;
+import starcorp.common.entities.Workers;
 import starcorp.common.turns.TurnOrder;
+import starcorp.common.turns.TurnReport;
 import starcorp.common.types.ABaseType;
 import starcorp.common.types.AFacilityType;
 import starcorp.common.types.AItemType;
 import starcorp.common.types.Items;
+import starcorp.common.types.OrderType;
+import starcorp.common.types.PopulationClass;
 
 /**
  * starcorp.client.gui.AWindowPane
@@ -102,12 +110,23 @@ public abstract class AWindowPane implements IComponent {
 		panel.redraw();
 	}
 	
+	protected TurnReport getTurnReport() {
+		return getWindow().getMainWindow().getTurnReport();
+	}
+	
 	protected String format(long number) {
 		return NumberFormat.getNumberInstance().format(number);
 	}
 	
 	protected String format(double number) {
 		return NumberFormat.getNumberInstance().format(number);
+	}
+	
+	protected Button createRadio(Composite parent, List<Widget> widgets, String label) {
+		createLabel(parent, widgets, label);
+		Button btn = new Button(parent, SWT.RADIO);
+		widgets.add(btn);
+		return btn;
 	}
 	
 	protected Button createCheckbox(Composite parent, List<Widget> widgets, String label) {
@@ -117,6 +136,240 @@ public abstract class AWindowPane implements IComponent {
 		return btn;
 	}
 	
+	protected TurnOrder issueGrant(Colony colony, PopulationClass type, int credits) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.ISSUE_COLONIST_GRANT));
+		order.add(colony.getID());
+		order.add(type.getKey());
+		order.add(credits);
+		return order;
+	}
+
+	protected TurnOrder issueGrant(Colony colony, AFacilityType type, int credits) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.ISSUE_DEVELOPMENT_GRANT));
+		order.add(colony.getID());
+		order.add(type.getKey());
+		order.add(credits);
+		return order;
+	}
+	
+	protected TurnOrder issueLease(Colony colony, AFacilityType type, int price, boolean forSelf) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.ISSUE_LEASE));
+		order.add(colony.getID());
+		order.add(type.getKey());
+		order.add(price);
+		if(forSelf) {
+			Corporation corp = getTurnReport().getTurn().getCorporation();
+			order.add(corp.getID());
+		}
+		return order;
+	}
+
+	protected TurnOrder jettisonOrder(Starship ship, AItemType type, int qty) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.JETTISON_ITEM));
+		order.add(ship.getID());
+		order.add(type.getKey());
+		order.add(qty);
+		return order;
+	}
+
+	protected TurnOrder deliverOrder(Starship ship, AItemType type, int qty) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SHIP_DELIVER_ITEM));
+		order.add(ship.getID());
+		order.add(ship.getColony());
+		order.add(type.getKey());
+		order.add(qty);
+		return order;
+	}
+
+	protected TurnOrder sellOrder(long colonyId, AItemType type, int qty, int price) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.CORP_SELL_ITEM));
+		order.add(colonyId);
+		order.add(type.getKey());
+		order.add(qty);
+		order.add(price);
+		return order;
+	}
+	
+	protected TurnOrder sellOrder(Starship ship, long colony, AItemType type, int qty, int price) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SHIP_SELL_ITEM));
+		order.add(ship.getID());
+		order.add(colony);
+		order.add(type.getKey());
+		order.add(qty);
+		order.add(price);
+		return order;
+	}
+
+	protected TurnOrder mineGasFieldOrder(Starship ship, StarSystemEntity gasfield) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.MINE_GAS_FIELD));
+		order.add(ship.getID());
+		order.add(gasfield.getID());
+		return order;
+	}
+
+	protected TurnOrder mineAsteroidOrder(Starship ship, StarSystemEntity asteroid) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.MINE_ASTEROID));
+		order.add(ship.getID());
+		order.add(asteroid.getID());
+		return order;
+	}
+
+	protected TurnOrder investigateOrder(Starship ship, StellarAnomoly anomoly) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.INVESTIGATE));
+		order.add(ship.getID());
+		order.add(anomoly.getID());
+		return order;
+	}
+	
+	protected TurnOrder scanSystemOrder(Starship ship) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SCAN_SYSTEM));
+		order.add(ship.getID());
+		return order;
+	}
+
+	protected TurnOrder scanGalaxyOrder(Starship ship) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SCAN_GALAXY));
+		order.add(ship.getID());
+		return order;
+	}
+
+	protected TurnOrder prospectOrder(Starship ship) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.PROSPECT));
+		order.add(ship.getID());
+		return order;
+	}
+	
+	protected TurnOrder probeSystemOrder(Starship ship, StarSystemEntity entity) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.PROBE_SYSTEM));
+		order.add(ship.getID());
+		order.add(entity.getID());
+		return order;
+	}
+	
+	protected TurnOrder probePlanetOrder(Starship ship, Planet planet) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.PROBE_PLANET));
+		order.add(ship.getID());
+		order.add(planet.getID());
+		return order;
+	}
+	
+	protected TurnOrder jumpOrder(Starship ship, StarSystem system) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.JUMP));
+		order.add(ship.getID());
+		if(system != null)
+			order.add(system.getID());
+		return order;
+	}
+
+	protected TurnOrder orbitOrder(Starship ship, Planet planet) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.ORBIT));
+		order.add(ship.getID());
+		order.add(planet.getID());
+		return order;
+	}
+	
+	protected TurnOrder leaveOrbitOrder(Starship ship) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.LEAVE_ORBIT));
+		order.add(ship.getID());
+		return order;
+	}
+	
+	protected TurnOrder moveOrder(Starship ship, int quadrant, int orbit) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.MOVE));
+		order.add(ship.getID());
+		order.add(quadrant);
+		order.add(orbit);
+		return order;
+	}
+	
+	protected TurnOrder takeOffOrder(Starship ship) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.TAKE_OFF));
+		order.add(ship.getID());
+		return order;
+	}
+
+	protected TurnOrder dockOrder(Starship ship, Colony colony) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.DOCK_COLONY));
+		order.add(ship.getID());
+		order.add(colony.getID());
+		return order;
+	}
+	
+	protected TurnOrder dockOrder(Starship ship, int x, int y) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.DOCK_PLANET));
+		order.add(ship.getID());
+		order.add(x);
+		order.add(y);
+		return order;
+	}
+
+	protected TurnOrder buildOrder(Facility facility, AItemType type, int qty) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.FACTORY_BUILD));
+		order.add(facility.getID());
+		order.add(type.getKey());
+		order.add(qty);
+		return order;
+	}
+
+	protected TurnOrder setSalaryOrder(Workers workers, int salary) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SET_SALARY));
+		order.add(workers.getFacility());
+		order.add(workers.getPopClassType());
+		order.add(salary);
+		return order;
+	}
+
+	protected TurnOrder buyOrder(MarketItem item, Starship ship, int qty) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.SHIP_BUY_ITEM));
+		order.add(ship.getID());
+		order.add(item.getColony());
+		order.add(item.getItem().getType());
+		order.add(qty);
+		return order;
+	}
+	
+	protected TurnOrder buyLease(AGovernmentLaw law) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.BUY_LEASE));
+		order.add(law.getColony());
+		order.add(law.getID());
+		return order;
+	}
+
+	protected TurnOrder buyOrder(MarketItem item, int qty) {
+		TurnOrder order = new TurnOrder();
+		order.setType(OrderType.getType(OrderType.CORP_BUY_ITEM));
+		order.add(item.getColony());
+		order.add(item.getItem().getType());
+		order.add(qty);
+		return order;
+	}
+
 	protected Hyperlink createPlanetMapLink(Composite parent, List<Widget> widgets, final Planet planet, String label) {
 		if(label == null) {
 			label = planet.getDisplayName();
@@ -258,6 +511,24 @@ public abstract class AWindowPane implements IComponent {
 			}
 			public void widgetSelected(SelectionEvent e) {
 				window.getMainWindow().set(new CorporationPane(window.getMainWindow(),corp));
+				window.getMainWindow().focus();
+			}
+		});
+		return lnk;
+	}
+	
+	protected Hyperlink createSendEmailLink(Composite parent, List<Widget> widgets, final Corporation corp, String label) {
+		if(label == null) {
+			label = "Send Email";
+		}
+		Hyperlink lnk = createHyperlink(parent, widgets, label);
+		lnk.addSelectionListener(new SelectionListener() {
+			public void widgetDefaultSelected(SelectionEvent e) {
+				window.getMainWindow().promptSendEmail(corp);
+				window.getMainWindow().focus();
+			}
+			public void widgetSelected(SelectionEvent e) {
+				window.getMainWindow().promptSendEmail(corp);
 				window.getMainWindow().focus();
 			}
 		});

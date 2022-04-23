@@ -71,7 +71,7 @@ public class Delete extends ACommand {
 				} else {
 					String className = "starcorp.common.entities."
 							+ entityClass;
-					Class clazz = Class.forName(className);
+					Class<?> clazz = Class.forName(className);
 					IEntity o = entityStore.load(clazz, ID);
 					if (o == null) {
 						out.println();

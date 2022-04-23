@@ -35,7 +35,6 @@ import starcorp.server.turns.AOrderProcessor;
  * @version 17 Sep 2007
  */
 public class DeliverItem extends AOrderProcessor {
-	// TODO test
 	public TurnError process(TurnOrder order) {
 		TurnError error = null;
 		OrderReport report = null;
@@ -45,6 +44,10 @@ public class DeliverItem extends AOrderProcessor {
 		String itemTypeKey = order.get(2);
 		int quantity = order.getAsInt(3);
 		
+		if(corp.getID() < 1) {
+			corp = entityStore.getCorporation(corp.getPlayerEmail());
+		}
+		
 		Starship ship = (Starship) entityStore.load(Starship.class, starshipId);
 		Colony colony = (Colony) entityStore.load(Colony.class, colonyId);
 		Planet planet = null;
@@ -53,7 +56,7 @@ public class DeliverItem extends AOrderProcessor {
 		AItemType type = AItemType.getType(itemTypeKey);
 		ColonyItem item = null;
 		if(type != null) {
-			item = entityStore.getItem(colony.getID(), type);
+			item = entityStore.getItem(colony.getID(), corp.getID(), type);
 		}
 		
 		Facility orbitalDock = colony == null ? null : entityStore.getFacility(colony.getID(), OrbitalDock.class);
@@ -105,7 +108,7 @@ public class DeliverItem extends AOrderProcessor {
 				orbitalDock.incTransactionCount();
 				entityStore.update(orbitalDock);
 			}
-			report = new OrderReport(order,item,ship);
+			report = new OrderReport(order,colony,ship);
 			report.add(quantity);
 			report.add(type.getName());
 			report.add(colony.getName());

@@ -18,6 +18,7 @@ import org.apache.commons.logging.LogFactory;
 import starcorp.server.ServerConfiguration;
 import starcorp.server.engine.AServerTask;
 import starcorp.server.facilities.FacilityProcessor;
+import starcorp.server.npc.NPCProcessor;
 import starcorp.server.population.PopulationProcessor;
 import starcorp.server.population.UnemployedMigration;
 import starcorp.server.shell.ACommand;
@@ -71,10 +72,7 @@ public class Updater extends ACommand {
 			return new UnemployedMigration();
 		}
 		else if("npc".equalsIgnoreCase(type)) {
-			out.println("NPC not implemented yet!");
-			out.print(Shell.PROMPT);
-			out.flush();
-			// TODO npc processor
+			return new NPCProcessor();
 		}
 		else if("fac".equalsIgnoreCase(type)) {
 			return new FacilityProcessor();
@@ -102,7 +100,7 @@ public class Updater extends ACommand {
 					entityStore.resetShipTimeUnits();
 					engine.scheduleAndWait(new PopulationProcessor());
 					engine.scheduleAndWait(new FacilityProcessor());
-					// TODO npc processor
+					engine.scheduleAndWait(new NPCProcessor());
 					engine.scheduleAndWait(new TurnFetcher());
 					engine.scheduleAndWait(new TurnProcessor());
 					out.println();

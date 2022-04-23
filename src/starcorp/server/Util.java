@@ -15,6 +15,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import starcorp.common.entities.AColonists;
 import starcorp.common.entities.CashTransaction;
 import starcorp.common.entities.Colony;
@@ -35,6 +38,8 @@ import starcorp.server.entitystore.IEntityStore;
  * @version 22 Sep 2007
  */
 public class Util {
+	private static final Log log = LogFactory.getLog(Util.class);
+	
 	public static class SuitableLocation implements Comparable<SuitableLocation> {
 		public Coordinates2D location;
 		public Planet planet;
@@ -134,10 +139,18 @@ public class Util {
 	
 	public static BuyResult buy(GalacticDate date, List<MarketItem> items, int quantity, long cashAvailable, IEntityStore entityStore) {
 		BuyResult result = new BuyResult();
-		
+		if(log.isDebugEnabled()) {
+			log.debug("Buy: " + cashAvailable + " to spend to buy " + quantity + " of " + items);
+		}
 		for(MarketItem item : items) {
+			if(log.isDebugEnabled()) {
+				log.debug("Buy: " + result + " : " + item);
+			}
 			if(result.quantityBought >= quantity) {
-				break;
+				if(log.isDebugEnabled()) {
+					log.debug("Buy: " + result);
+				}
+				return result;
 			}
 			int avail = item.getQuantity();
 			if(avail < 1)
@@ -167,7 +180,9 @@ public class Util {
 			cashAvailable -= price;
 			result.bought.add(new Items(type,qty));
 		}
-		
+		if(log.isDebugEnabled()) {
+			log.debug("Buy: " + result);
+		}
 		return result;
 	}
 

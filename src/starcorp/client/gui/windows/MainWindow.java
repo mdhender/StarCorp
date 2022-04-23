@@ -37,6 +37,7 @@ import starcorp.client.gui.panes.SimpleTextPane;
 import starcorp.client.gui.widgets.ConfigurationDialog;
 import starcorp.client.gui.widgets.CredentialsDialog;
 import starcorp.client.gui.widgets.Menu;
+import starcorp.client.gui.widgets.SendEmailDialog;
 import starcorp.client.gui.widgets.Toolbar;
 import starcorp.client.gui.widgets.TreeBrowser;
 import starcorp.common.entities.Corporation;
@@ -245,7 +246,15 @@ public class MainWindow extends AWindow {
 	}
 	
 	public void close() {
-		setCurrentTurn(null);
+		if(isTurnDirty()) {
+			int buttonID = messageBox("Save Current Turn", "Do you wish to save the current turn first?", SWT.ICON_WARNING | SWT.YES | SWT.NO | SWT.CANCEL);
+			if(buttonID == SWT.CANCEL) {
+				return;
+			}
+			else if(buttonID == SWT.YES) {
+				openSaveTurn();
+			}
+		}
 		closeChildWindows();
 		super.close();
 		System.exit(0);
@@ -510,6 +519,20 @@ public class MainWindow extends AWindow {
 		return turnWindow;
 	}
 	
+	public void promptSendEmail(Corporation to) {
+		Corporation from = currentTurn == null ? null : currentTurn.getCorporation() == null ? null : currentTurn.getCorporation();
+		if(from == null && turnReport != null) {
+			from = turnReport.getTurn().getCorporation();
+		}
+		if(from == null) {
+			messageBox("Send Email Error", "Cannot send emails without authenticating your corporation", SWT.ICON_ERROR | SWT.OK);
+		}
+		else {
+			SendEmailDialog dialog = new SendEmailDialog(shell,from,to);
+			dialog.open();
+		}
+	}
+	
 	public void promptConfiguration() {
 		ConfigurationDialog dialog = new ConfigurationDialog(shell);
 		dialog.open();
@@ -619,6 +642,9 @@ public class MainWindow extends AWindow {
 			}
 			if(ClientConfiguration.getSmtpHost() == null) {
 				messageBox("Send Mail Error", "You have not configured your email server!", SWT.ICON_ERROR | SWT.OK);
+			}
+			else if(currentTurn.getCorporation().getPlayerEmail() == null) {
+				messageBox("Send Mail Error", "You have not specified an email address!", SWT.ICON_ERROR | SWT.OK);
 			}
 			else {
 				SendEmail email = new SendEmail(ClientConfiguration.getSmtpHost(), ClientConfiguration.getSmtpPort(), ClientConfiguration.getSmtpUser(), ClientConfiguration.getSmtpPassword());

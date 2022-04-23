@@ -11,8 +11,11 @@
 package starcorp.common.turns;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+
 import org.dom4j.Element;
 
 import starcorp.common.entities.IEntity;
@@ -33,7 +36,7 @@ public class OrderReport {
 	private IEntity target;
 	private IEntity subject;
 	private List<String> msgArgs = new ArrayList<String>();
-	private List scannedEntities = new ArrayList();
+	private Set scannedEntities = new HashSet();
 	private PlanetMapSquare scannedLocation;
 	private Planet mappedPlanet;
 	
@@ -130,7 +133,7 @@ public class OrderReport {
 		this.msgArgs = msgArgs;
 	}
 
-	public List<?> getScannedEntities() {
+	public Set<?> getScannedEntities() {
 		return scannedEntities;
 	}
 	public List<?> getScannedEntities(Class clazz) {

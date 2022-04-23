@@ -42,22 +42,27 @@ public class FactoryProcessor extends AServerTask {
 		Factory type = (Factory) factory.getTypeClass();
 		int maxCapacity = factory.isPowered() ? type.getCapacity(workers) : 0;
 		int capacityUsed = 0;
-		Iterator<FactoryQueueItem> i = entityStore.listQueue(factory.getID()).iterator();
+		List<FactoryQueueItem> queue = entityStore.listQueue(factory.getID());
+		if(log.isDebugEnabled())
+			log.debug(this +": " + queue.size() + " items queued.");
+		Iterator<FactoryQueueItem> i = queue.iterator();
 		while(capacityUsed < maxCapacity && i.hasNext()) {
-			Items item = build(factory, i.next(), maxCapacity);
+			Items item = build(factory, i.next(), (maxCapacity - capacityUsed));
 			if(item != null) {
-				capacityUsed = item.getTotalMass(); 
+				capacityUsed += item.getTotalMass(); 
 			}
 		}
 		if(log.isDebugEnabled())
 			log.debug(this + ": " + factory + " production done.");
 	}
 
-	private Items build(Facility factory, FactoryQueueItem queueItem, int maxCapacity) {
+	private Items build(Facility factory, FactoryQueueItem queueItem, int capacityAvailable) {
 		Items item = queueItem.getItem();
+		if(log.isDebugEnabled()) {
+			log.debug("Next queue item for " + factory + " is " + queueItem);
+		}
 		AFactoryItem type = (AFactoryItem) item.getTypeClass();
-		int avail = maxCapacity - factory.getTransactionCount();
-		int qty = avail / type.getMassUnits();
+		int qty = capacityAvailable / type.getMassUnits();
 		if(qty > item.getQuantity()) {
 			qty = item.getQuantity();
 		}
@@ -129,6 +134,7 @@ public class FactoryProcessor extends AServerTask {
 			List<AColonists> workers = entityStore.listWorkersByFacility(facility.getID());
 			processFactory(facility, workers);
 		}
+		log.info(this+": " + list.size() + " factories processed.");
 	}
 
 	/* (non-Javadoc)

@@ -59,10 +59,12 @@ public class ShipBuyItem extends AOrderProcessor {
 			colonyPlanet = ((Planet) entityStore.load(Planet.class, colony.getPlanet()));
 		
 		AItemType type = AItemType.getType(itemTypeKey);
-		List<MarketItem> marketItems = entityStore.listMarket(colony.getID(), 1); 
+		List<MarketItem> marketItems = null;
+		if(colony != null && type != null) 
+			marketItems = entityStore.listMarket(colony.getID(), type, 1); 
 		
-		Facility colonyHub = entityStore.getFacility(colony.getID(), colony.getGovernment(), ColonyHub.class);
-		Facility orbitalDock = entityStore.getFacility(colony.getID(), OrbitalDock.class);
+		Facility colonyHub = colony == null ? null : entityStore.getFacility(colony.getID(), colony.getGovernment(), ColonyHub.class);
+		Facility orbitalDock = colony == null ? null : entityStore.getFacility(colony.getID(), OrbitalDock.class);
 		List<AColonists> hubWorkers = colonyHub == null ? null : entityStore.listWorkersByFacility(colonyHub.getID());
 		List<AColonists> dockWorkers = orbitalDock == null ? null : entityStore.listWorkersByFacility(orbitalDock.getID());
 		
@@ -126,7 +128,11 @@ public class ShipBuyItem extends AOrderProcessor {
 				if(quantity > quantitySpaceFor) {
 					quantity = quantitySpaceFor;
 				}
-				Util.BuyResult result = Util.buy(ServerConfiguration.getCurrentDate(), marketItems, quantity, entityStore.getCredits(corp.getID()),entityStore);
+				if(corp.getID() < 1) {
+					corp = entityStore.getCorporation(corp.getPlayerEmail());
+				}
+				long credits = entityStore.getCredits(corp.getID());
+				Util.BuyResult result = Util.buy(ServerConfiguration.getCurrentDate(), marketItems, quantity, credits,entityStore);
 				if(log.isDebugEnabled()) {
 					log.debug("Result: " + result);
 				}

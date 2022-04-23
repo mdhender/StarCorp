@@ -11,8 +11,6 @@
 package starcorp.client;
 
 import java.io.IOException;
-import java.util.ResourceBundle;
-
 import starcorp.common.util.XMLConfiguration;
 
 /**

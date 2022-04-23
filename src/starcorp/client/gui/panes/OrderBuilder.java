@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Widget;
 import starcorp.client.gui.ABuilderPane;
 import starcorp.client.gui.ADataEntryWindow;
 import starcorp.client.gui.windows.TurnOrderWindow;
+import starcorp.common.entities.Colony;
 import starcorp.common.entities.IEntity;
 import starcorp.common.turns.Turn;
 import starcorp.common.turns.TurnOrder;
@@ -105,10 +106,21 @@ public class OrderBuilder extends ABuilderPane {
 		});
 	}
 
-	private void chooseOrderType(List<Widget> widgets, OrderType orderType) {
+	private void chooseOrderType(final List<Widget> widgets, OrderType orderType) {
 		System.out.println(orderType + " selected");
 		clearAllContents();
 		String type = orderType.getKey();
+		if(type.equals(OrderType.BUY_LEASE)){
+			final Combo combo = createColonyDropDown(widgets, 0);
+			combo.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					Colony colony = (Colony) getComboValue(combo);
+					createFacilityLeaseDropDown(widgets, colony.getID(),1);
+					getWindow().redraw();
+				}
+			});
+			
+		}
 		if(type.equals(OrderType.BUILD_FACILITY)){
 			createColonyDropDown(widgets, 0);
 			createFacilityTypeDropDown(widgets, 1);
@@ -167,14 +179,16 @@ public class OrderBuilder extends ABuilderPane {
 			createIntegerInput(widgets, 4, "Price");
 		}
 		else if(type.equals(OrderType.SHIP_PICKUP_ITEM)){
-			createColonyDropDown(widgets, 0);
-			createItemTypeDropDown(widgets, 1);
-			createIntegerInput(widgets, 2, "Quantity");
+			createShipDropDown(widgets, 0);
+			createColonyDropDown(widgets, 1);
+			createItemTypeDropDown(widgets, 2);
+			createIntegerInput(widgets, 3, "Quantity");
 		}
 		else if(type.equals(OrderType.SHIP_DELIVER_ITEM)){
-			createColonyDropDown(widgets, 0);
-			createItemTypeDropDown(widgets, 1);
-			createIntegerInput(widgets, 2, "Quantity");
+			createShipDropDown(widgets, 0);
+			createColonyDropDown(widgets, 1);
+			createItemTypeDropDown(widgets, 2);
+			createIntegerInput(widgets, 3, "Quantity");
 		}
 		else if(type.equals(OrderType.FOUND_COLONY)){
 			createShipDropDown(widgets, 0);
@@ -331,11 +345,23 @@ public class OrderBuilder extends ABuilderPane {
 		setContents(index, lbl, label);
 	}
 	
-	private void createColonyDropDown(List<Widget> widgets, int index) {
+	private void createFacilityLeaseDropDown(List<Widget> widgets, long colonyId, int index) {
 		if(report != null)
-			setContents(index,createEntitySelection(orderArgumentPanels[index], widgets, report.getColonies(), null),"Colony");
+			setContents(index,createEntitySelection(orderArgumentPanels[index], widgets, report.getLeases(colonyId,true), null),"Facility Leases");
 		else
+			createErrorLabel(widgets, index, "Facility Lease", "No report loaded");
+	}
+	
+	private Combo createColonyDropDown(List<Widget> widgets, int index) {
+		Combo combo = null;
+		if(report != null) {
+			combo = createEntitySelection(orderArgumentPanels[index], widgets, report.getColonies(), null);
+			setContents(index,combo,"Colony");
+		}
+		else {
 			createErrorLabel(widgets, index, "Colony", "No report loaded");
+		}
+		return combo;
 	}
 	
 	private void createFacilityDropDown(List<Widget> widgets, int index) {
@@ -346,7 +372,6 @@ public class OrderBuilder extends ABuilderPane {
 	}
 	
 	private void createFactoryDropDown(List<Widget> widgets, int index) {
-		// TODO make this drop down filterable by colony
 		if(report != null)
 			setContents(index,createEntitySelection(orderArgumentPanels[index], widgets, report.getPlayerFacilitiesByType(Factory.class), null),"Factory");
 		else

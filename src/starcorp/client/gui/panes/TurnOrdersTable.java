@@ -82,10 +82,21 @@ public class TurnOrdersTable extends ATablePane {
 	protected void createWidgets(List<Widget> widgets) {
 		super.createWidgets(widgets);
 		Group grp = createGroup(getParent(), widgets, "");
-		RowLayout layout = new RowLayout(SWT.VERTICAL);
+		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
 		layout.marginWidth=10;
 		layout.marginHeight=5;
 		grp.setLayout(layout);
+		createButton(grp, widgets, "Delete")
+		.addListener(SWT.Selection, new Listener() {
+			public void handleEvent (Event event) {
+				for(int i : getChecked()) {
+					turn.remove(i);
+					((TurnOrderWindow)window).turnEdited();
+					delete(i);
+				}
+				getWindow().redraw();
+			}
+		});
 		createButton(grp, widgets, "Clear")
 		.addListener(SWT.Selection, new Listener() {
 			public void handleEvent (Event event) {

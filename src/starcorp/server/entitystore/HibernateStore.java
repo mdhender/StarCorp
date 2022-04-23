@@ -25,7 +25,9 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
+import starcorp.common.entities.ABaseEntity;
 import starcorp.common.entities.AColonists;
+import starcorp.common.entities.ACorporateItem;
 import starcorp.common.entities.AGovernmentLaw;
 import starcorp.common.entities.CashTransaction;
 import starcorp.common.entities.CreditAccount;
@@ -52,6 +54,7 @@ import starcorp.common.types.AItemType;
 import starcorp.common.types.AtmosphereType;
 import starcorp.common.types.Coordinates3D;
 import starcorp.common.types.CoordinatesPolar;
+import starcorp.common.types.Factory;
 import starcorp.common.types.ICoordinates;
 import starcorp.common.types.PopulationClass;
 import starcorp.server.ServerConfiguration;
@@ -87,6 +90,14 @@ public class HibernateStore implements IEntityStore {
 		getSession().flush();
 		getSession().getTransaction().commit();
 		getSession().close();
+	}
+
+	private List<IEntity> copyEntities(List<?> objects, List<IEntity> list) {
+		for (Object o : objects) {
+			list.add((IEntity) o);
+		}
+		commit();
+		return list;
 	}
 
 	private List<CreditAccount> copyAccounts(List<?> objects) {
@@ -155,7 +166,9 @@ public class HibernateStore implements IEntityStore {
 	private List<ColonyItem> copyItems(List<?> objects) {
 		List<ColonyItem> list = new ArrayList<ColonyItem>();
 		for (Object o : objects) {
-			list.add((ColonyItem) o);
+			ColonyItem item = (ColonyItem) o;
+			if(item.getQuantity() > 0)
+				list.add(item);
 		}
 		commit();
 		return list;
@@ -166,6 +179,7 @@ public class HibernateStore implements IEntityStore {
 		for(Object o : objects) {
 			list.add((AGovernmentLaw)o);
 		}
+		commit();
 		return list;
 	}
 
@@ -210,6 +224,7 @@ public class HibernateStore implements IEntityStore {
 		for(Object o : objects) {
 			list.add((FactoryQueueItem)o);
 		}
+		commit();
 		return list;
 	}
 
@@ -516,7 +531,8 @@ public class HibernateStore implements IEntityStore {
 		Query query = createQuery(q, "colony", colony);
 		double avg = 0.0;
 		try {
-			avg = (Double) query.uniqueResult();
+			Double dbl = (Double) query.uniqueResult(); 
+			avg = dbl == null ? 0.0 : dbl;
 		}
 		catch(Throwable e) {
 			log.error(e.getMessage(),e);
@@ -560,7 +576,7 @@ public class HibernateStore implements IEntityStore {
 		Map<String, Object> map = prepareParameters("email", email);
 		prepareParameters(map, "password", password);
 		beginTransaction();
-		int count = (Integer) createQuery(q, map).uniqueResult();
+		long count = (Long) createQuery(q, map).uniqueResult();
 		commit();
 		return count > 0;
 	}
@@ -631,16 +647,6 @@ public class HibernateStore implements IEntityStore {
 			return f;
 		}
 		return null;
-	}
-
-	public ColonyItem getItem(long colony, AItemType type) {
-		String q = "from ColonyItem where colony = :colony and item.type = :type";
-		Map<String, Object> map = prepareParameters("colony", colony);
-		prepareParameters(map, "type", type.getKey());
-		beginTransaction();
-		ColonyItem i = (ColonyItem) loadObject(createQuery(q, map));
-		commit();
-		return i;
 	}
 
 	public ColonyItem getItem(long colony, long owner, AItemType type) {
@@ -854,7 +860,7 @@ public class HibernateStore implements IEntityStore {
 	}
 
 	public List<Facility> listFacilitiesPowered(List<AFacilityType> types) {
-		String q = "from Facility where powered = true";
+		String q = "from Facility where open = true and powered = true";
 		if(types != null && types.size() > 0) {
 			q += " and type IN (";
 			int i = 0;
@@ -871,7 +877,7 @@ public class HibernateStore implements IEntityStore {
 	}
 
 	public List<ColonyItem> listItems(long owner) {
-		String q = "from ColonyItem where owner = :owner";
+		String q = "from ColonyItem where owner = :owner and item.quantity > 0";
 		beginTransaction();
 		return copyItems(listObject(createQuery(q, "owner", owner)));
 	}
@@ -907,6 +913,13 @@ public class HibernateStore implements IEntityStore {
 	public List<MarketItem> listMarket(long colony, int minQty) {
 		String q = "from MarketItem where colony = :colony and item.quantity >= "
 				+ minQty;
+		beginTransaction();
+		return copyMarket(listObject(createQuery(q, "colony", colony)));
+	}
+
+	public List<MarketItem> listMarket(long colony, AItemType type, int minQty) {
+		String q = "from MarketItem where colony = :colony and item.quantity >= "
+				+ minQty + " and item.type = '" + type.getKey() + "'";
 		beginTransaction();
 		return copyMarket(listObject(createQuery(q, "colony", colony)));
 	}
@@ -1044,6 +1057,12 @@ public class HibernateStore implements IEntityStore {
 		String q = "from Unemployed where colony = :colony";
 		beginTransaction();
 		return copyColonists(listObject(createQuery(q, "colony", colony)));
+	}
+
+	public List<AColonists> listUnemployedByGovernment(long corpId) {
+		String q = "from Unemployed where colony IN (select ID from Colony where government = " + corpId + ")";
+		beginTransaction();
+		return copyColonists(listObject(createQuery(q)));
 	}
 
 	public List<AColonists> listWorkersByColony(long colony) {
@@ -1210,6 +1229,94 @@ public class HibernateStore implements IEntityStore {
 		beginTransaction();
 		createQuery(q).executeUpdate();
 		commit();
+	}
+
+	public List<IEntity> list(Class<?> entityClass) {
+		return list(entityClass, new ArrayList<IEntity>());
+	}
+	
+	private List<IEntity> list(Class<?> entityClass, List<IEntity> list) {
+		String q = "from " + entityClass.getSimpleName();
+		beginTransaction();
+		return copyEntities(listObject(createQuery(q)),list);
+	}
+
+	public List<IEntity> listAll() {
+		List<IEntity> list = new ArrayList<IEntity>();
+		list(ABaseEntity.class, list);
+		list(ACorporateItem.class, list);
+		list(AGovernmentLaw.class, list);
+		list(CashTransaction.class, list);
+		list(CreditAccount.class, list);
+		list(ResourceDeposit.class, list);
+		return list;
+	}
+
+	public void importEntity(IEntity entity) {
+		beginTransaction();
+		getSession().save(entity);
+		commit();
+	}
+
+	public List<Facility> listNPCEmptyQueueFactories() {
+		String q = "select fac from Facility as fac where fac.open = true and " +
+					"fac.owner IN (select ID from Corporation where playerEmail IS NULL) and " + 
+					"fac.ID NOT IN (select q.factory from " +
+					"FactoryQueueItem as q group by q.factory) and fac.type IN (";
+		List<AFacilityType> types = AFacilityType.listTypes(Factory.class);
+		int i = 0;
+		for(AFacilityType type : types) {
+			if(i > 0) q += ", ";
+			q += "'" + type.getKey() + "'";
+			i++;
+		}
+		q += ")";
+		beginTransaction();
+		return copyFacilities(listObject(createQuery(q)));
+	}
+
+	public List<Facility> listNPCFactories() {
+		String q = "select fac from Facility as fac where fac.open = true and " +
+					"fac.owner IN (select ID from Corporation where playerEmail IS NULL) " + 
+					"and fac.type IN (";
+		List<AFacilityType> types = AFacilityType.listTypes(Factory.class);
+		int i = 0;
+		for(AFacilityType type : types) {
+			if(i > 0) q += ", ";
+			q += "'" + type.getKey() + "'";
+			i++;
+		}
+		q += ")";
+		beginTransaction();
+		return copyFacilities(listObject(createQuery(q)));
+	}
+
+	public List<ResourceDeposit> listDepositsByColony(long colonyId) {
+		Colony colony = (Colony) load(Colony.class, colonyId);
+		if(colony == null) {
+			return null;
+		}
+		String q = "select rd from ResourceDeposit as rd where rd.location = :location " +
+		"and rd.systemEntity = " + colony.getPlanet();
+		beginTransaction();
+		return copyDeposits(listObject(createQuery(q, "location", colony.getLocation())));
+	}
+
+	public List<ColonyItem> listAllNPCItems(Class<?> typeClass, int minQty) {
+		String q = "select ci from ColonyItem as ci where ci.item.quantity > " + minQty +
+			" and ci.owner IN (select ID from Corporation where playerEmail IS NULL)" +
+			" and ci.item.type IN (";
+		List<AItemType> types = AItemType.listTypes(typeClass);
+		int count = 0;
+		for(AItemType type : types ) {
+			if(count > 0)
+				q += ", ";
+			q += "'" + type.getKey() + "'";
+			count++;
+		}
+		q += ")";
+		beginTransaction();
+		return copyItems(listObject(createQuery(q)));
 	}
 
 }

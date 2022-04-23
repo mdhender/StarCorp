@@ -30,6 +30,7 @@ import starcorp.client.gui.windows.MainWindow;
 import starcorp.client.gui.windows.SearchItemsWindow;
 import starcorp.client.gui.windows.SearchLawsWindow;
 import starcorp.client.gui.windows.SearchMarketWindow;
+import starcorp.common.entities.AColonists;
 import starcorp.common.entities.Colony;
 import starcorp.common.entities.Planet;
 import starcorp.common.turns.TurnOrder;
@@ -67,18 +68,15 @@ public class GovernmentPane extends AEntityPane {
 		createLabel(grp,widgets,"Location: ");
 		createPlanetLink(grp, widgets, planet, planet.getDisplayName() + " @ " + colony.getLocation());
 
-		data = new GridData();
-		data.horizontalSpan=2;
-			
 		Hyperlink lnkLaws = createHyperlink(grp, widgets, "View Laws");
 		lnkLaws.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				SearchLawsWindow window = mainWindow.openSearchLawWindow();
-				window.set(colony);
+				window.set(-1, null, colony);
 			}
 			public void widgetSelected(SelectionEvent e) {
 				SearchLawsWindow window = mainWindow.openSearchLawWindow();
-				window.set(colony);
+				window.set(-1, null, colony);
 			}
 		});
 		
@@ -86,11 +84,11 @@ public class GovernmentPane extends AEntityPane {
 		lnkMarket.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				SearchMarketWindow window = mainWindow.openSearchMarketWindow();
-				window.setFilterColony(colony);
+				window.set(0,-1,null,null,colony);
 			}
 			public void widgetSelected(SelectionEvent e) {
 				SearchMarketWindow window = mainWindow.openSearchMarketWindow();
-				window.setFilterColony(colony);
+				window.set(0,-1,null,null,colony);
 			}
 		});
 		
@@ -98,16 +96,32 @@ public class GovernmentPane extends AEntityPane {
 		lnkItems.addSelectionListener(new SelectionListener() {
 			public void widgetDefaultSelected(SelectionEvent e) {
 				SearchItemsWindow window = mainWindow.openSearchItemsWindow();
-				window.setFilterColony(colony);
+				window.set(0,null,null,colony);
 			}
 			public void widgetSelected(SelectionEvent e) {
 				SearchItemsWindow window = mainWindow.openSearchItemsWindow();
-				window.setFilterColony(colony);
+				window.set(0,null,null,colony);
 			}
 		});
+		data = new GridData();
+		data.horizontalSpan=2;
 		lnkItems.setLayoutData(data);
 		
+		createUnemployed(widgets);
 		createActions(widgets);
+	}
+	
+	private void createUnemployed(List<Widget> widgets) {
+		Group grp = createGroup(getParent(), widgets, "Unemployed");
+		GridLayout layout = new GridLayout(3,false);
+		grp.setLayout(layout);
+		GridData data = new GridData();
+		data.horizontalSpan=2;
+		grp.setLayoutData(data);
+		
+		for(AColonists colonist : getTurnReport().getUnemployed(colony.getID())) {
+			createColonistLink(grp, widgets, colonist, null);
+		}
 	}
 	
 	private void createActions(List<Widget> widgets) {

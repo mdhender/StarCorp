@@ -36,6 +36,7 @@ import starcorp.common.entities.Colony;
 import starcorp.common.entities.ColonyItem;
 import starcorp.common.entities.Corporation;
 import starcorp.common.entities.Facility;
+import starcorp.common.entities.FacilityLease;
 import starcorp.common.entities.FactoryQueueItem;
 import starcorp.common.entities.IEntity;
 import starcorp.common.entities.MarketItem;
@@ -71,6 +72,7 @@ public class TurnReport {
 	private List<IEntity> playerEntities = new ArrayList<IEntity>(); 
 	private Set<StarSystem> systems = new HashSet<StarSystem>();
 	private Turn turn;
+	private List<AColonists> unemployed;
 	
 	public TurnReport(Element e) {
 		readXML(e);
@@ -226,6 +228,27 @@ public class TurnReport {
 		return items;
 	}
 	
+	public List<FacilityLease> getLeases(long colonyId, boolean availableOnly) {
+		List<FacilityLease> list = new ArrayList<FacilityLease>();
+		for(AGovernmentLaw law : laws) {
+			if(law instanceof FacilityLease) {
+				FacilityLease lease = (FacilityLease) law;
+				if(lease.getColony() == colonyId) {
+					if(availableOnly) {
+						if(lease.isAvailable() && lease.getLicensee() == 0) {
+							list.add(lease);
+						}
+					}
+					else {
+						list.add(lease);
+					}
+					
+				}
+			}
+		}
+		return list;
+	}
+	
 	public List<AGovernmentLaw> getLaws() {
 		return laws;
 	}
@@ -234,12 +257,12 @@ public class TurnReport {
 		return market;
 	}
 	
-	public Map<Long, Set<MarketItem>> getMarketByColony() {
-		Map<Long, Set<MarketItem>> map = new TreeMap<Long, Set<MarketItem>>();
+	public Map<Long, List<MarketItem>> getMarketByColony() {
+		Map<Long, List<MarketItem>> map = new TreeMap<Long, List<MarketItem>>();
 		for(MarketItem item : getMarket()) {
-			Set<MarketItem> list = map.get(item.getColony());
+			List<MarketItem> list = map.get(item.getColony());
 			if(list == null) {
-				list = new TreeSet<MarketItem>();
+				list = new ArrayList<MarketItem>();
 				map.put(item.getColony(),list);
 			}
 			list.add(item);
@@ -247,12 +270,12 @@ public class TurnReport {
 		return map;
 	}
 	
-	public Map<Long, Set<MarketItem>> getMarketBySeller() {
-		Map<Long, Set<MarketItem>> map = new TreeMap<Long, Set<MarketItem>>();
+	public Map<Long, List<MarketItem>> getMarketBySeller() {
+		Map<Long, List<MarketItem>> map = new TreeMap<Long, List<MarketItem>>();
 		for(MarketItem item : getMarket()) {
-			Set<MarketItem> list = map.get(item.getSeller());
+			List<MarketItem> list = map.get(item.getSeller());
 			if(list == null) {
-				list = new TreeSet<MarketItem>();
+				list = new ArrayList<MarketItem>();
 				map.put(item.getSeller(),list);
 			}
 			list.add(item);
@@ -419,7 +442,7 @@ public class TurnReport {
 	public Set<Starship> getPlayerStarshipsInOrOrbitingColony(Colony colony) {
 		Set<Starship> list = new TreeSet<Starship>();
 		for(Starship ship : getPlayerStarships() ) {
-			if(colony.equals(ship.getColony()) || ship.isOrbiting(colony.getID()))
+			if(colony.getID() == ship.getColony() || ship.isOrbiting(colony.getPlanet()))
 				list.add(ship);
 		}
 		return list;
@@ -603,6 +626,15 @@ public class TurnReport {
 					employees.add(worker);
 			}
 		}
+		unemployed = new ArrayList<AColonists>();
+		Element eUnemployed = e.element("unemployed");
+		if(eUnemployed != null) {
+			for(Iterator<?> i = eUnemployed.elementIterator("entity"); i.hasNext();) {
+				AColonists worker  = (AColonists) Util.fromXML((Element)i.next());
+				if(worker != null)
+					unemployed.add(worker);
+			}
+		}
 		market = new ArrayList<MarketItem>();
 		Element eMarket = e.element("market");
 		if(eMarket != null) {
@@ -726,6 +758,13 @@ public class TurnReport {
 				if(c != null)c.toBasicXML(e);
 			}
 		}
+		e = root.addElement("unemployed");
+		if(unemployed != null) {
+			e.addAttribute("size", String.valueOf(unemployed.size()));
+			for(AColonists c : unemployed) {
+				if(c != null)c.toBasicXML(e);
+			}
+		}
 		e = root.addElement("factory-queue");
 		if(factoryQueue != null) {
 			e.addAttribute("size", String.valueOf(factoryQueue.size()));
@@ -776,5 +815,22 @@ public class TurnReport {
 		
 		xmlWriter.write(doc);
 		xmlWriter.close();
+	}
+
+	public List<AColonists> getUnemployed(long colonyId) {
+		List<AColonists> list = new ArrayList<AColonists>();
+		for(AColonists c : unemployed) {
+			if(c.getColony() == colonyId)
+				list.add(c);
+		}
+		return list;
+	}
+
+	public List<AColonists> getUnemployed() {
+		return unemployed;
+	}
+
+	public void setUnemployed(List<AColonists> unemployed) {
+		this.unemployed = unemployed;
 	}
 }
