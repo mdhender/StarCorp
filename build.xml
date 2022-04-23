@@ -1,0 +1,220 @@
+<?xml version="1.0"?>
+<project default="dist">
+
+	<property name="version" value="0.9.0.0" />
+	<property name="projectName" value="StarCorp"/>
+	<property name="src" location="src"/>
+	<property name="build" location="build"/>
+	<property name="dist" location="dist"/>
+	
+	<property name="serverJarName" value="${projectName}-server-${version}"/>
+	<property name="clientJarName" value="${projectName}-client-${version}" />
+	<property name="srcZipName" value="${projectName}-src-${version}"/>
+	<property name="orgName" value="StarCorp PbeM" />
+	<property name="clientMainClassFullName" value="starcorp.client.Main" />
+	<property name="serverMainClassFullName" value="starcorp.server.shell.Shell" />
+	<property name="launch4j.dir" location="C:\Program Files\launch4j\" />
+	<property name="makeNsis" location="C:\Program Files\NSIS\makensis.exe" />
+
+	<path id="lib.common">
+		<fileset dir="lib/common">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="lib.client">
+		<fileset dir="lib/client">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<path id="lib.server">
+		<fileset dir="lib/server">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="init">
+		<tstamp>
+			<format property="curYear" pattern="yyyy" />
+		</tstamp>
+		<delete dir="${dist}"/>
+		<mkdir dir="${dist}"/>
+	</target>
+	
+	<target name="compile-client" depends="init">
+		<delete dir="${build}"/>
+		<mkdir dir="${build}"/>
+		<javac destdir="${build}">
+			<classpath>
+				<path refid="lib.common"/>
+				<path refid="lib.client"/>
+			</classpath>
+			<src path="${src}"/>
+			<exclude name="starcorp/server/**"/>
+		</javac>
+	</target>
+	
+	<target name="compile-server" depends="init">
+		<delete dir="${build}"/>
+		<mkdir dir="${build}"/>
+		<javac destdir="${build}">
+			<classpath>
+				<path refid="lib.common"/>
+				<path refid="lib.server"/>
+			</classpath>
+			<src path="${src}"/>
+			<exclude name="starcorp/client/**"/>
+		</javac>
+	</target>
+	
+	<target name="dist" depends="dist-client, dist-server, dist-src"/>
+
+	<target name="dist-client" depends="installer-client">
+		<zip destfile="${dist}/${clientJarName}.zip" basedir="${dist}/client"/>
+	</target>
+		
+	<target name="dist-server" depends="jar-server">
+		<mkdir dir="${dist}/server/lib"/>
+		<copy todir="${dist}/server/lib">
+			<fileset dir="lib/common">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="lib/server">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<copy file="server.bat.template" tofile="${dist}/server/server.bat" />
+		<replace file="${dist}/server/server.bat" token="JarFile" value="${serverJarName}.jar" />
+		<zip destfile="${dist}/${serverJarName}.zip" basedir="${dist}/server"/>
+	</target>
+
+	<target name="jar-client" depends="compile-client">
+		<mkdir dir="${dist}/client"/>
+		<copy todir="${build}">
+			<fileset dir="resources-common">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="resources-client">
+				<include name="**/*"/>
+				<exclude name="**/client.properties"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist}/client/${clientJarName}.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Implementation-Version" value="${version} ${TODAY}" />
+				<attribute name="Main-Class" value="${clientMainClassFullName}" />
+				<attribute name="Class-Path" value="lib/swt.jar lib/activation.jar lib/commons-logging.jar lib/dom4j-1.6.1.jar lib/log4j-1.2.8.jar lib/mail.jar" />
+			</manifest>
+		</jar>
+	</target>
+	
+	<target name="jar-server" depends="compile-server">
+		<mkdir dir="${dist}/server"/>
+		<copy todir="${build}">
+			<fileset dir="resources-common">
+				<include name="**/*"/>
+			</fileset>
+			<fileset dir="resources-server">
+				<include name="**/*"/>
+				<exclude name="**/client.properties"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist}/server/${serverJarName}.jar" basedir="${build}">
+			<manifest>
+				<attribute name="Built-By" value="${user.name}" />
+				<attribute name="Implementation-Version" value="${version} ${TODAY}" />
+				<attribute name="Main-Class" value="${serverMainClassFullName}" />
+				<attribute name="Class-Path" value="lib/antlr-2.7.6.jar lib/asm.jar lib/asm-attrs.jar lib/cglib-2.1.3.jar lib/commons-collections.jar lib/commons-pool.jar lib/hibernate3.jar lib/jta.jar lib/mysql-connector-java-5.0.7-bin.jar lib/activation.jar lib/commons-logging.jar lib/dom4j-1.6.1.jar lib/log4j-1.2.8.jar lib/mail.jar" />
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="dist-src" depends="init">
+		<delete dir="${build}"/>
+		<mkdir dir="${build}"/>
+		<copy todir="${build}">
+			<fileset dir=".">
+				<include name="src/**"/>
+				<include name="lib/**"/>
+				<include name="resources-common/**"/>
+				<include name="resources-client/**"/>
+				<include name="resources-server/**"/>
+				<include name="launch4j/**"/>
+				<include name="nsis/**"/>
+				<include name="LICENSE"/>
+				<include name="NOTICE"/>
+				<include name="appsettings.ini"/>
+				<include name="build.xml"/>
+				<include name="build.bat"/>
+				<include name="server.bat.template"/>
+				<exclude name="**/server.properties"/>
+				<exclude name="**/client.properties"/>
+			</fileset>
+		</copy>
+		<zip destfile="${dist}/${srcZipName}.zip" basedir="${build}"/>
+	</target>
+
+	<target name="exe-client" depends="jar-client">
+		<taskdef name="launch4j" classname="net.sf.launch4j.ant.Launch4jTask" classpath="${launch4j.dir}/launch4j.jar:${launch4j.dir}/lib/xstream.jar" />
+		<launch4j>
+			<config headerType="gui" jar="dist/client/${clientJarName}.jar" 
+				outfile="dist/client/${clientJarName}.exe" 
+				errTitle="${projectName}" icon="launch4j\icon.ico">
+				<jre minVersion="1.5.0" />
+				<splash file="launch4j\splash.bmp" waitForWindow="true" timeout="60" timeoutErr="false" />
+				<versionInfo fileVersion="${version}" txtFileVersion="${version}" 
+					fileDescription="${clientJarName}" copyright="2007" productVersion="${version}" 
+					txtProductVersion="${version}" productName="${projectName}"
+					companyName="${orgName}" internalName="${clientJarName}" 
+					originalFilename="${clientJarName}.exe" />
+			</config>
+		</launch4j>
+	</target>
+
+	<target name="installer-client" depends="exe-client">
+		<mkdir dir="${dist}/client/lib"/>
+		<copy todir="${dist}/client/lib">
+			<fileset dir="lib/client">
+				<include name="**/*"/>
+				<exclude name="**/*.dll"/>
+			</fileset>
+			<fileset dir="lib/common">
+				<include name="**/*"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist}/client">
+			<fileset dir="lib/client">
+				<include name="**/*.dll"/>
+			</fileset>
+		</copy>
+
+		<delete file="nsis/installer.nsi" />
+		<copy file="nsis/installertemplate.nsi" tofile="nsis/installer.nsi" />
+		<replace file="nsis/installer.nsi" token="OrgName" value="${orgName}" />
+		<replace file="nsis/installer.nsi" token="ProjectName" value="${projectName} Client" />
+		<replace file="nsis/installer.nsi" token="ExeFileName" value="${clientJarName}" />
+
+		<copy todir="${dist}/client">
+			<fileset dir=".">
+				<include name="nsis/**"/>
+				<include name="launch4j/**"/>
+				<include name="appsettings.ini"/>
+			</fileset>
+		</copy>
+		
+		<!-- Execute NSIS -->
+		<property name="file" location="nsis\installer.nsi" />
+		<exec executable="${makeNsis}" dir="dist\client">
+			<arg value="/V2" />
+			<arg value="/NOCD" />
+			<arg value="${file}" />
+		</exec>
+		
+		<delete dir="${dist}/client/nsis"/>
+		<delete dir="${dist}/client/launch4j"/>
+		<delete file="${dist}/client/appsettings.ini"/>
+	</target>
+
+</project>

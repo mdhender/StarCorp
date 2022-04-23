@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="starcorp.common.entities.ACorporateItem" table="CORPORATE_ITEMS" lazy="false">
+    	<id name="ID"><generator class="native"/></id>
+    	<version name="version"/>
+   		<property name="owner"/>
+   		<property name="colony"/>
+   		<component name="item">
+   			<property name="type" column="itemType"/>
+   			<property name="quantity"/>
+   		</component>
+
+    	<joined-subclass name="starcorp.common.entities.ColonyItem" table="COLONY_ITEMS" lazy="false">
+    		<key column="ITEM_ID"/>
+		</joined-subclass> <!-- ColonyItem -->
+		
+    	<joined-subclass name="starcorp.common.entities.FactoryQueueItem" table="FACTORY_QUEUE" lazy="false">
+    		<key column="ITEM_ID"/>
+    		<property name="factory"/>
+    		<property name="position"/>
+    		<component name="queuedDate">
+    			<property name="year" column="queuedYear"/>
+    			<property name="month" column="queuedMonth"/>
+    		</component>
+		</joined-subclass> <!-- FactoryQueueItem -->
+		
+    	<joined-subclass name="starcorp.common.entities.MarketItem" table="MARKET_ITEMS" lazy="false">
+    		<key column="ITEM_ID"/>
+    		<property name="costPerItem"/>
+    		<component name="issuedDate">
+    			<property name="year" column="issuedYear"/>
+    			<property name="month" column="issuedMonth"/>
+    		</component>
+    		<component name="soldDate">
+    			<property name="year" column="soldYear"/>
+    			<property name="month" column="soldMonth"/>
+    		</component>
+    	</joined-subclass> <!-- MarketItem -->
+    	
+    </class> <!-- ACorporateItem -->
+</hibernate-mapping>

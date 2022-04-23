@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+    <class name="starcorp.common.entities.ResourceDeposit" table="RESOURCE_DEPOSITS" lazy="false">
+    	<id name="ID"><generator class="native"/></id>
+    	<version name="version"/>
+   		<property name="systemEntity"/>
+   		<component name="location">
+   			<property name="x"/>
+   			<property name="y"/>
+   		</component>
+   		<property name="type" column="itemType"/>
+   		<property name="totalQuantity"/>
+   		<property name="yield" column="resourceYield"/>
+
+    </class> <!-- ResourceDeposit -->
+</hibernate-mapping>

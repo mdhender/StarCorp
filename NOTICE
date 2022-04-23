@@ -1,0 +1,25 @@
+  =========================================================================
+   ==  NOTICE file corresponding to section 4(d) of the Apache License,   ==
+   ==  Version 2.0, in this case for the Star Corp distribution.          ==
+   =========================================================================
+
+   This product includes software developed by Seyed Razavi.
+
+   This product includes software developed by the following:
+       
+     - The Apache Software Foundation (commons-logging, commons-collections, commons-pool, log4j, cglib)        
+       
+     - Kent Beck, Erich Gamma, David Saff (junit)
+     
+     - Red Hat Middleware, LLC (hibernate)
+     
+     - Terence Parr (antlr)
+     
+     - INRIA, France Telecom (asm)
+     
+     - MySQL AB (mysql-connector)
+     
+     - MetaStuff, Ltd (dom4j)
+     
+     - Sun Microsystems, Inc (java platform, activation, mail)
+ 
